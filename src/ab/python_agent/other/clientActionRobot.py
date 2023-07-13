@@ -4,7 +4,7 @@ import sys
 
 from PIL import Image
 
-from external.ClientMessageEncoder import configure, get_state, load_level, do_screen_shot
+from external.ClientMessageEncoder import configure, get_state, load_level, do_screen_shot, get_my_score
 from utils import decode_byte_to_int
 
 
@@ -140,6 +140,27 @@ class ClientActionRobot:
         except socket.error as e:
             print("Connection error: %s" % e)
             sys.exit(1)
+
+    def get_my_score(self):
+        """Capture a screenshot and save it to an image file.
+
+            Sends a screenshot request to the client socket and saves the received screenshot data
+            to an image file specified by `image_fname`.
+
+        :param image_fname: The filename to save the screenshot as. Defaults to 'screenshot'.
+        :type image_fname: (str, optional)
+        :return: image dir
+        :rtype string
+        """
+        message = get_my_score()
+        self.client_socket.sendall(message)
+        response = self.client_socket.recv(84)
+        scores = []
+        for i in range(0, len(response), 4):
+            score_bytes = response[i:i + 4]
+            score = int.from_bytes(score_bytes, byteorder='big')
+            scores.append(score)
+        return scores
 
     def close_connection(self):
         self.client_socket.close()

@@ -56,3 +56,9 @@ def do_screen_shot():
     message = bytearray(1)
     message[0] = CMT.get_value_byte(CMT.doScreenShot)
     return message
+
+
+def get_my_score():
+    message = bytearray(1)
+    message[0] = CMT.get_value_byte(CMT.getMyScore)
+    return message
