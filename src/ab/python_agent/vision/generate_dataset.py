@@ -166,8 +166,8 @@ yellow_bird_img = cv2.imread(yellow_bird_img_path, -1)
 
 birds = [red_bird_img, black_bird_img, green_bird_img, red_big_bird_img, white_bird_img, yellow_bird_img]
 
-train_dataset_size = 1
-val_dataset_size = 1
+train_dataset_size = 5000
+val_dataset_size = 1000
 
 for d, dataset_size in enumerate([train_dataset_size, val_dataset_size]):
     for j in range(dataset_size):
