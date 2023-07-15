@@ -27,6 +27,8 @@ def get_bbox(mask):
     X, Y = H // 2, W // 2
     return int(X), int(Y), int(W) + 4, int(H) + 4
 
+    # return int(X), int(Y), int(W) + 4, int(H) + 4
+
 
 def get_bounding_rect(image):
     # Convert the image to grayscale
@@ -141,8 +143,7 @@ red_big_bird_img_path = 'vision/resources/reb_big_bird.png'
 white_bird_img_path = 'vision/resources/white_bird.png'
 yellow_bird_img_path = 'vision/resources/yellow_bird.png'
 
-# output_dir = 'vision/dataset'
-output_dir = 'vision/test'
+output_dir = 'vision/dataset'
 images_dir = os.path.join(output_dir, 'images')
 labels_dir = os.path.join(output_dir, 'labels')
 train_images_dir = os.path.join(images_dir, 'train')
@@ -165,8 +166,8 @@ yellow_bird_img = cv2.imread(yellow_bird_img_path, -1)
 
 birds = [red_bird_img, black_bird_img, green_bird_img, red_big_bird_img, white_bird_img, yellow_bird_img]
 
-train_dataset_size = 5000
-val_dataset_size = 1000
+train_dataset_size = 1
+val_dataset_size = 1
 
 for d, dataset_size in enumerate([train_dataset_size, val_dataset_size]):
     for j in range(dataset_size):
