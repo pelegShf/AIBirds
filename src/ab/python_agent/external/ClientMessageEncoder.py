@@ -68,3 +68,9 @@ def get_my_score():
     message = bytearray(1)
     message[0] = CMT.get_value_byte(CMT.getMyScore)
     return message
+
+
+def fully_zoom_in():
+    message = bytearray(1)
+    message[0] = CMT.get_value_byte(CMT.fullyZoomIn)
+    return message

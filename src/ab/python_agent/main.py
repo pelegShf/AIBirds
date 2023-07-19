@@ -13,6 +13,8 @@ def run():
     ar.do_screen_shot()
     my_score = ar.get_my_score()
     resp = ar.restart_level()
+    zoomed_in = ar.fully_zoom_in()
+    print(zoomed_in)
 
 
 # Usage example
