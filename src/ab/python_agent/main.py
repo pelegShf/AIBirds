@@ -15,7 +15,6 @@ def run():
     resp = ar.restart_level()
 
 
-
 # Usage example
 team_id = 28888
 server_address = '127.0.0.1'
