@@ -194,6 +194,7 @@ for d, dataset_size in enumerate([train_dataset_size, val_dataset_size]):
                     random.randint(img_.shape[0], background.shape[0] - img_.shape[0])
 
                 img_ = overlay_img(background, img_, (location_x, location_y))
+
                 img_dir = train_images_dir if d == 0 else val_images_dir  # train or validation dataset
                 cv2.imwrite(os.path.join(img_dir, '{}.jpg'.format(str(j))), img_)
 
