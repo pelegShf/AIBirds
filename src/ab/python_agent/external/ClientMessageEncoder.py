@@ -47,6 +47,12 @@ def load_level(level):
     return message
 
 
+def restart_level():
+    message = bytearray(1)
+    message[0] = CMT.get_value_byte(CMT.restartLevel)
+    return message
+
+
 def do_screen_shot():
     """encodes screenshot message
 
