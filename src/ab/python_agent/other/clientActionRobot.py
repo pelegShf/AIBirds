@@ -5,7 +5,7 @@ import sys
 from PIL import Image
 
 from external.ClientMessageEncoder import configure, get_state, load_level, do_screen_shot, get_my_score, restart_level, \
-    fully_zoom_in
+    fully_zoom_in, fully_zoom_out
 from utils import decode_byte_to_int
 
 
@@ -187,6 +187,23 @@ class ClientActionRobot:
             """
         try:
             message = fully_zoom_in()
+            self.client_socket.sendall(message)
+
+            response = self.client_socket.recv(1)
+            response = decode_byte_to_int(response)  # [1/0]
+
+            return response
+        except socket.error as e:
+            print("Connection error: %s" % e)
+            sys.exit(1)
+
+    def fully_zoom_out(self):
+        """The server will fully zoom out on receiving this message
+            :return: 1/0 - 1: The server has fully zoomed out the current game | 0: The server cannot zoom in
+            :rtype int
+            """
+        try:
+            message = fully_zoom_out()
             self.client_socket.sendall(message)
 
             response = self.client_socket.recv(1)
