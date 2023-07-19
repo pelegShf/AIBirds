@@ -88,17 +88,17 @@ def overlay_img(background, overlay, location):
     return background
 
 
-def rotate(img, alpha):
-    (h, w) = img.shape[:2]
-    (cX, cY) = (w // 2, h // 2)
+# def rotate(img, alpha):
+#     (h, w) = img.shape[:2]
+#     (cX, cY) = (w // 2, h // 2)
+#
+#     M = cv2.getRotationMatrix2D((cX, cY), alpha, 1.0)
+#     rotated = cv2.warpAffine(img, M, (w, h))
+#
+#     return rotated
 
-    M = cv2.getRotationMatrix2D((cX, cY), alpha, 1.0)
-    rotated = cv2.warpAffine(img, M, (w, h))
 
-    return rotated
-
-
-def ModifiedWay(rotateImage, angle):
+def rotate(rotateImage, angle):
     # Taking image height and width
     imgHeight, imgWidth = rotateImage.shape[0], rotateImage.shape[1]
 
@@ -185,15 +185,15 @@ for d, dataset_size in enumerate([train_dataset_size, val_dataset_size]):
 
             resize_ = 50 * random.randint(1, 2)
 
-            pig_img_ = cv2.resize(obj_img, (resize_, resize_))
-            pig_img_ = ModifiedWay(pig_img_, alpha)
-            xc, yc, w, h = get_bbox(pig_img_)
+            img_ = cv2.resize(obj_img, (resize_, resize_))
+            img_ = rotate(img_, alpha)
+            xc, yc, w, h = get_bbox(img_)
 
             try:
-                location_x, location_y = random.randint(pig_img_.shape[1], background.shape[1] - pig_img_.shape[1]), \
-                    random.randint(pig_img_.shape[0], background.shape[0] - pig_img_.shape[0])
+                location_x, location_y = random.randint(img_.shape[1], background.shape[1] - img_.shape[1]), \
+                    random.randint(img_.shape[0], background.shape[0] - img_.shape[0])
 
-                img_ = overlay_img(background, pig_img_, (location_x, location_y))
+                img_ = overlay_img(background, img_, (location_x, location_y))
                 img_dir = train_images_dir if d == 0 else val_images_dir  # train or validation dataset
                 cv2.imwrite(os.path.join(img_dir, '{}.jpg'.format(str(j))), img_)
 

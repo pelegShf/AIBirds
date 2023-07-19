@@ -4,7 +4,7 @@ import sys
 
 from PIL import Image
 
-from external.ClientMessageEncoder import configure, get_state, load_level, do_screen_shot, get_my_score
+from external.ClientMessageEncoder import configure, get_state, load_level, do_screen_shot, get_my_score, restart_level
 from utils import decode_byte_to_int
 
 
@@ -80,9 +80,9 @@ class ClientActionRobot:
             sys.exit(1)
 
     def load_level(self, level=0):
-        """Load a level and send it to the client socket.
+        """Load a level and send it to the server socket.
 
-            This function loads a specific level and sends it to the client socket for processing.
+            This function loads a specific level and sends it to the server socket for processing.
             It uses the `load_level` function to retrieve the level message and sends it using the client socket's `sendall` method.
             After sending the message, it waits for a response from the client using the `recv` method and decodes it to an integer.
 
@@ -92,6 +92,23 @@ class ClientActionRobot:
         """
         try:
             message = load_level(level)
+            self.client_socket.sendall(message)
+
+            response = self.client_socket.recv(1)
+            response = decode_byte_to_int(response)  # [1/0]
+
+            return response
+        except socket.error as e:
+            print("Connection error: %s" % e)
+            sys.exit(1)
+
+    def restart_level(self):
+        """restart current level.
+            :return: 1/0 - 1: the level has been restarted | 0: The server cannot restart the level
+            :rtype int
+            """
+        try:
+            message = restart_level()
             self.client_socket.sendall(message)
 
             response = self.client_socket.recv(1)
