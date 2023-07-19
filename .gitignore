@@ -2,7 +2,11 @@
 runs/
 
 # Ignore the "venv" folder in the root directory
-venv/
+**/venv/
 
 # Ignore the "dataset" folder in any subdirectory
 **/dataset/
+
+
+# Ignore the "dataset" folder in any subdirectory
+**/.idea/

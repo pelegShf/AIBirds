@@ -1,5 +1,3 @@
-import time
-
 from other.clientActionRobot import ClientActionRobot
 
 
@@ -13,6 +11,10 @@ def run():
     ar.do_screen_shot()
     my_score = ar.get_my_score()
     resp = ar.restart_level()
+    zoomed_in = ar.fully_zoom_in()
+    print(zoomed_in)
+    zoomed_out = ar.fully_zoom_out()
+    print(zoomed_out)
 
 
 # Usage example
