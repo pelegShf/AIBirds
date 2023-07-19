@@ -1,3 +1,5 @@
+import time
+
 from other.clientActionRobot import ClientActionRobot
 
 
@@ -10,6 +12,8 @@ def run():
     load_lvl = ar.load_level(1)
     ar.do_screen_shot()
     my_score = ar.get_my_score()
+    resp = ar.restart_level()
+
 
 
 # Usage example

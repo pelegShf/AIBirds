@@ -1,0 +1,8 @@
+# Ignore the "runs" folder in the root directory
+runs/
+
+# Ignore the "venv" folder in the root directory
+venv/
+
+# Ignore the "dataset" folder in any subdirectory
+**/dataset/
