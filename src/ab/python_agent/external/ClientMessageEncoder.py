@@ -80,3 +80,132 @@ def fully_zoom_out():
     message = bytearray(1)
     message[0] = CMT.get_value_byte(CMT.fullyZoomOut)
     return message
+
+
+def c_shoot(focus_x, focus_y, dx, dy, t1, t2):
+    """
+
+    :param focus_x: the x coordinate of the focus point
+    :param focus_y: the y coordinate of the focus point
+    :param dx: the x coordinate of the release point minus focus_x
+    :param dy: the y coordinate of the release point minus focus_y
+    :param t1: the release time
+    :param t2: the gap between the release time and the tap time
+    :return: message 25 bytes long [MID,focus_x,focus_y,dx,dy,t1,t2]
+    :rtype: bytearray
+    """
+    msg_id = CMT.get_value_byte(CMT.cshoot)
+    focus_x_bytes = focus_x.to_bytes(length=4, byteorder='big')
+    focus_y_bytes = focus_y.to_bytes(length=4, byteorder='big')
+    dx_bytes = dx.to_bytes(length=4, byteorder='big')
+    dy_bytes = dy.to_bytes(length=4, byteorder='big')
+    t1_bytes = t1.to_bytes(length=4, byteorder='big')
+    t2_bytes = t2.to_bytes(length=4, byteorder='big')
+    msg_lst = [focus_x_bytes, focus_y_bytes, dx_bytes, dy_bytes, t1_bytes, t2_bytes]
+    message = bytearray(25)
+    message[0] = msg_id
+    message[1:] = focus_x_bytes
+    message[5:] = focus_y_bytes
+    message[9:] = dx_bytes
+    message[13:] = dy_bytes
+    message[18:] = t1_bytes
+    message[21:] = t2_bytes
+    print(message)
+    # for i, msg in enumerate(msg_lst):
+    #     message[(i * 4) + 1] = msg
+    return message
+
+
+def c_fast_shoot(focus_x, focus_y, dx, dy, t1, t2):
+    """
+
+    :param focus_x: the x coordinate of the focus point
+    :param focus_y: the y coordinate of the focus point
+    :param dx: the x coordinate of the release point minus focus_x
+    :param dy: the y coordinate of the release point minus focus_y
+    :param t1: the release time
+    :param t2: the gap between the release time and the tap time
+    :return: message 25 bytes long [MID,focus_x,focus_y,dx,dy,t1,t2]
+    :rtype: bytearray
+    """
+    msg_id = CMT.get_value_byte(CMT.cFastshoot)
+    focus_x_bytes = focus_x.to_bytes(length=4, byteorder='big')
+    focus_y_bytes = focus_y.to_bytes(length=4, byteorder='big')
+    dx_bytes = dx.to_bytes(length=4, byteorder='big')
+    dy_bytes = dy.to_bytes(length=4, byteorder='big')
+    t1_bytes = t1.to_bytes(length=4, byteorder='big')
+    t2_bytes = t2.to_bytes(length=4, byteorder='big')
+    msg_lst = [focus_x_bytes, focus_y_bytes, dx_bytes, dy_bytes, t1_bytes, t2_bytes]
+    message = bytearray(25)
+    message[0] = msg_id
+    message[1:] = focus_x_bytes
+    message[5:] = focus_y_bytes
+    message[9:] = dx_bytes
+    message[13:] = dy_bytes
+    message[18:] = t1_bytes
+    message[21:] = t2_bytes
+    print(message)
+    # for i, msg in enumerate(msg_lst):
+    #     message[(i * 4) + 1] = msg
+    return message
+
+def p_shoot(focus_x, focus_y, r, theta, t1, t2):
+    """
+
+    :param focus_x: the x coordinate of the focus point
+    :param focus_y: the y coordinate of the focus point
+    :param r: the radial coordinate
+    :param theta: the angular coordinate by degree from -90.00 to 90.00. The theta value is represented by an integer
+    :param t1: the release time
+    :param t2: the gap between the release time and the tap time
+    :return: message 25 bytes long [MID,focus_x,focus_y,dx,dy,t1,t2]
+    :rtype: bytearray
+    """
+    msg_id = CMT.get_value_byte(CMT.pshoot)
+    focus_x_bytes = focus_x.to_bytes(length=4, byteorder='big')
+    focus_y_bytes = focus_y.to_bytes(length=4, byteorder='big')
+    r_bytes = r.to_bytes(length=4, byteorder='big')
+    theta_bytes = theta.to_bytes(length=4, byteorder='big')
+    t1_bytes = t1.to_bytes(length=4, byteorder='big')
+    t2_bytes = t2.to_bytes(length=4, byteorder='big')
+
+    message = bytearray(25)
+    message[0] = msg_id
+    message[1:] = focus_x_bytes
+    message[5:] = focus_y_bytes
+    message[9:] = r_bytes
+    message[13:] = theta_bytes
+    message[18:] = t1_bytes
+    message[21:] = t2_bytes
+    return message
+
+
+def p_fast_shoot(focus_x, focus_y, r, theta, t1, t2):
+    """
+
+    :param focus_x: the x coordinate of the focus point
+    :param focus_y: the y coordinate of the focus point
+    :param r: the radial coordinate
+    :param theta: the angular coordinate by degree from -90.00 to 90.00. The theta value is represented by an integer
+    :param t1: the release time
+    :param t2: the gap between the release time and the tap time
+    :return: message 25 bytes long [MID,focus_x,focus_y,dx,dy,t1,t2]
+    :rtype: bytearray
+    """
+    msg_id = CMT.get_value_byte(CMT.pFastshoot)
+    focus_x_bytes = focus_x.to_bytes(length=4, byteorder='big')
+    focus_y_bytes = focus_y.to_bytes(length=4, byteorder='big')
+    r_bytes = r.to_bytes(length=4, byteorder='big')
+    theta_bytes = theta.to_bytes(length=4, byteorder='big')
+    t1_bytes = t1.to_bytes(length=4, byteorder='big')
+    t2_bytes = t2.to_bytes(length=4, byteorder='big')
+
+    message = bytearray(25)
+    message[0] = msg_id
+    message[1:] = focus_x_bytes
+    message[5:] = focus_y_bytes
+    message[9:] = r_bytes
+    message[13:] = theta_bytes
+    message[18:] = t1_bytes
+    message[21:] = t2_bytes
+    return message

@@ -5,7 +5,7 @@ import sys
 from PIL import Image
 
 from external.ClientMessageEncoder import configure, get_state, load_level, do_screen_shot, get_my_score, restart_level, \
-    fully_zoom_in, fully_zoom_out
+    fully_zoom_in, fully_zoom_out, c_shoot, p_shoot, c_fast_shoot, p_fast_shoot
 from utils import decode_byte_to_int
 
 
@@ -204,6 +204,104 @@ class ClientActionRobot:
             """
         try:
             message = fully_zoom_out()
+            self.client_socket.sendall(message)
+
+            response = self.client_socket.recv(1)
+            response = decode_byte_to_int(response)  # [1/0]
+
+            return response
+        except socket.error as e:
+            print("Connection error: %s" % e)
+            sys.exit(1)
+
+    def c_shoot(self, focus_x, focus_y, dx, dy, t1, t2):
+        """Makes a shot in cartesian coordinates
+
+            :param focus_x: the x coordinate of the focus point
+            :param focus_y: the y coordinate of the focus point
+            :param dx: the x coordinate of the release point minus focus_x
+            :param dy: the y coordinate of the release point minus focus_y
+            :param t1: the release time
+            :param t2: the gap between the release time and the tap time
+            :return: 1/0 - 1: the shot has been made | 0: the shot has been rejected
+            :rtype int
+        """
+        try:
+            message = c_shoot(focus_x, focus_y, dx, dy, t1, t2)
+            self.client_socket.sendall(message)
+
+            response = self.client_socket.recv(1)
+            response = decode_byte_to_int(response)  # [1/0]
+
+            return response
+        except socket.error as e:
+            print("Connection error: %s" % e)
+            sys.exit(1)
+
+
+    def c_fast_shoot(self, focus_x, focus_y, dx, dy, t1, t2):
+        """Makes a shot in cartesian coordinates
+
+            :param focus_x: the x coordinate of the focus point
+            :param focus_y: the y coordinate of the focus point
+            :param dx: the x coordinate of the release point minus focus_x
+            :param dy: the y coordinate of the release point minus focus_y
+            :param t1: the release time
+            :param t2: the gap between the release time and the tap time
+            :return: 1/0 - 1: the shot has been made | 0: the shot has been rejected
+            :rtype int
+        """
+        try:
+            message = c_fast_shoot(focus_x, focus_y, dx, dy, t1, t2)
+            self.client_socket.sendall(message)
+
+            response = self.client_socket.recv(1)
+            response = decode_byte_to_int(response)  # [1/0]
+
+            return response
+        except socket.error as e:
+            print("Connection error: %s" % e)
+            sys.exit(1)
+
+    def p_shoot(self, focus_x, focus_y, r, theta, t1, t2):
+        """Makes a shot in polar coordinates
+
+        :param focus_x: the x coordinate of the focus point
+        :param focus_y: the y coordinate of the focus point
+        :param r: the radial coordinate
+        :param theta: the angular coordinate by degree from -90.00 to 90.00. The theta value is represented by an integer
+        :param t1: the release time
+        :param t2: the gap between the release time and the tap time
+        :return:  message 25 bytes long [MID,focus_x,focus_y,dx,dy,t1,t2]
+        :rtype: bytearray
+        """
+        try:
+            message = p_shoot(focus_x, focus_y, r, theta, t1, t2)
+            self.client_socket.sendall(message)
+
+            response = self.client_socket.recv(1)
+            response = decode_byte_to_int(response)  # [1/0]
+
+            return response
+        except socket.error as e:
+            print("Connection error: %s" % e)
+            sys.exit(1)
+
+
+    def p_fast_shoot(self, focus_x, focus_y, r, theta, t1, t2):
+        """Makes a shot in polar coordinates
+
+        :param focus_x: the x coordinate of the focus point
+        :param focus_y: the y coordinate of the focus point
+        :param r: the radial coordinate
+        :param theta: the angular coordinate by degree from -90.00 to 90.00. The theta value is represented by an integer
+        :param t1: the release time
+        :param t2: the gap between the release time and the tap time
+        :return:  message 25 bytes long [MID,focus_x,focus_y,dx,dy,t1,t2]
+        :rtype: bytearray
+        """
+        try:
+            message = p_fast_shoot(focus_x, focus_y, r, theta, t1, t2)
             self.client_socket.sendall(message)
 
             response = self.client_socket.recv(1)
