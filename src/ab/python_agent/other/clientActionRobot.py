@@ -6,6 +6,7 @@ from PIL import Image
 
 from external.ClientMessageEncoder import configure, get_state, load_level, do_screen_shot, get_my_score, restart_level, \
     fully_zoom_in, fully_zoom_out, c_shoot, p_shoot, c_fast_shoot, p_fast_shoot
+
 from utils import decode_byte_to_int
 
 
@@ -311,6 +312,7 @@ class ClientActionRobot:
         except socket.error as e:
             print("Connection error: %s" % e)
             sys.exit(1)
+
 
     def close_connection(self):
         self.client_socket.close()
