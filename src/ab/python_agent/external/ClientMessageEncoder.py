@@ -97,11 +97,11 @@ def c_shoot(focus_x, focus_y, dx, dy, t1, t2):
     msg_id = CMT.get_value_byte(CMT.cshoot)
     focus_x_bytes = focus_x.to_bytes(length=4, byteorder='big')
     focus_y_bytes = focus_y.to_bytes(length=4, byteorder='big')
-    dx_bytes = dx.to_bytes(length=4, byteorder='big')
-    dy_bytes = dy.to_bytes(length=4, byteorder='big')
+    dx_bytes = dx.to_bytes(length=4, byteorder='big', signed=True)
+    dy_bytes = dy.to_bytes(length=4, byteorder='big', signed=True)
     t1_bytes = t1.to_bytes(length=4, byteorder='big')
     t2_bytes = t2.to_bytes(length=4, byteorder='big')
-    msg_lst = [focus_x_bytes, focus_y_bytes, dx_bytes, dy_bytes, t1_bytes, t2_bytes]
+    msg_lst = [bytearray(msg_id), focus_x_bytes, focus_y_bytes, dx_bytes, dy_bytes, t1_bytes, t2_bytes]
     message = bytearray(25)
     message[0] = msg_id
     message[1:] = focus_x_bytes
@@ -110,7 +110,14 @@ def c_shoot(focus_x, focus_y, dx, dy, t1, t2):
     message[13:] = dy_bytes
     message[18:] = t1_bytes
     message[21:] = t2_bytes
+
+    msg = b""
+    for param in msg_lst:
+        msg += param
+
     print(message)
+    print(msg)
+
     # for i, msg in enumerate(msg_lst):
     #     message[(i * 4) + 1] = msg
     return message
@@ -131,8 +138,8 @@ def c_fast_shoot(focus_x, focus_y, dx, dy, t1, t2):
     msg_id = CMT.get_value_byte(CMT.cFastshoot)
     focus_x_bytes = focus_x.to_bytes(length=4, byteorder='big')
     focus_y_bytes = focus_y.to_bytes(length=4, byteorder='big')
-    dx_bytes = dx.to_bytes(length=4, byteorder='big')
-    dy_bytes = dy.to_bytes(length=4, byteorder='big')
+    dx_bytes = dx.to_bytes(length=4, byteorder='big', signed=True)
+    dy_bytes = dy.to_bytes(length=4, byteorder='big', signed=True)
     t1_bytes = t1.to_bytes(length=4, byteorder='big')
     t2_bytes = t2.to_bytes(length=4, byteorder='big')
     msg_lst = [focus_x_bytes, focus_y_bytes, dx_bytes, dy_bytes, t1_bytes, t2_bytes]
@@ -149,6 +156,7 @@ def c_fast_shoot(focus_x, focus_y, dx, dy, t1, t2):
     #     message[(i * 4) + 1] = msg
     return message
 
+
 def p_shoot(focus_x, focus_y, r, theta, t1, t2):
     """
 
@@ -164,8 +172,8 @@ def p_shoot(focus_x, focus_y, r, theta, t1, t2):
     msg_id = CMT.get_value_byte(CMT.pshoot)
     focus_x_bytes = focus_x.to_bytes(length=4, byteorder='big')
     focus_y_bytes = focus_y.to_bytes(length=4, byteorder='big')
-    r_bytes = r.to_bytes(length=4, byteorder='big')
-    theta_bytes = theta.to_bytes(length=4, byteorder='big')
+    r_bytes = r.to_bytes(length=4, byteorder='big', signed=True)
+    theta_bytes = theta.to_bytes(length=4, byteorder='big', signed=True)
     t1_bytes = t1.to_bytes(length=4, byteorder='big')
     t2_bytes = t2.to_bytes(length=4, byteorder='big')
 
@@ -195,8 +203,8 @@ def p_fast_shoot(focus_x, focus_y, r, theta, t1, t2):
     msg_id = CMT.get_value_byte(CMT.pFastshoot)
     focus_x_bytes = focus_x.to_bytes(length=4, byteorder='big')
     focus_y_bytes = focus_y.to_bytes(length=4, byteorder='big')
-    r_bytes = r.to_bytes(length=4, byteorder='big')
-    theta_bytes = theta.to_bytes(length=4, byteorder='big')
+    r_bytes = r.to_bytes(length=4, byteorder='big', signed=True)
+    theta_bytes = theta.to_bytes(length=4, byteorder='big', signed=True)
     t1_bytes = t1.to_bytes(length=4, byteorder='big')
     t2_bytes = t2.to_bytes(length=4, byteorder='big')
 
