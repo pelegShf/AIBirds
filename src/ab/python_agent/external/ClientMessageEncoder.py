@@ -47,6 +47,12 @@ def load_level(level):
     return message
 
 
+def get_current_level():
+    message = bytearray(1)
+    message[0] = CMT.get_value_byte(CMT.getCurrentLevel)
+    return message
+
+
 def restart_level():
     message = bytearray(1)
     message[0] = CMT.get_value_byte(CMT.restartLevel)
@@ -74,7 +80,6 @@ def get_best_scores():
     message = bytearray(1)
     message[0] = CMT.get_value_byte(CMT.getBestScores)
     return message
-
 
 
 def fully_zoom_in():
