@@ -21,7 +21,6 @@ def run():
         # makeshot = ar.c_fast_shoot(196, 326, 40, 0, 0, 0) # fast shot in cartesian random values
         # makeshot = ar.p_fast_shoot(196, 326, 30, 7000, 0, 0) # fast shot in polar random values
 
-
 # Usage example
 team_id = 28888
 server_address = '127.0.0.1'

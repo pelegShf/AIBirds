@@ -5,7 +5,7 @@ import sys
 from PIL import Image
 
 from external.ClientMessageEncoder import configure, get_state, load_level, do_screen_shot, get_my_score, restart_level, \
-    fully_zoom_in, fully_zoom_out, c_shoot, p_shoot, c_fast_shoot, p_fast_shoot
+    fully_zoom_in, fully_zoom_out, c_shoot, p_shoot, c_fast_shoot, p_fast_shoot, get_best_scores
 
 from utils import decode_byte_to_int
 
@@ -161,17 +161,35 @@ class ClientActionRobot:
             sys.exit(1)
 
     def get_my_score(self):
-        """Capture a screenshot and save it to an image file.
+        """returns agent score for all levels.
 
-            Sends a screenshot request to the client socket and saves the received screenshot data
-            to an image file specified by `image_fname`.
+            return a fixed length (4 * 21) bytes array with every four slots indicates a best score of the corresponding level. Scores of unsolved and unavailable levels are zero.
 
-        :param image_fname: The filename to save the screenshot as. Defaults to 'screenshot'.
-        :type image_fname: (str, optional)
-        :return: image dir
-        :rtype string
+        :return: (4 * 21) bytes array
+        :rtype bytes array
         """
         message = get_my_score()
+        self.client_socket.sendall(message)
+        response = self.client_socket.recv(84)
+        scores = []
+        for i in range(0, len(response), 4):
+            score_bytes = response[i:i + 4]
+            score = int.from_bytes(score_bytes, byteorder='big')
+            scores.append(score)
+        return scores
+
+    def get_best_scores(self):
+        """returns best scores of all agents for all levels.
+
+            The server will return a fixed length (4 * 21) bytes array with every four slots indicates a best score of the corresponding level. Scores of unsolved and unavailable levels are zero.
+            1: 1st qualification round: this request will return an array of the best scores the naive agent achieved on the qualification levels.
+            2: 2nd qualification round: this request will return an array of the best scores achieved in the 1st qualification round on the qualification levels.
+            3: Group round (group of four): this request will return an array of the current best scores of their own group. The scores change whenever a new high score is obtained.
+            4: Knock-out round (group of two): this request will return an array of the current best scores for the two participating agents. The scores change whenever a new high score is obtained.
+            :return: (4 * 21) bytes array
+            :rtype bytes array
+            """
+        message = get_best_scores()
         self.client_socket.sendall(message)
         response = self.client_socket.recv(84)
         scores = []

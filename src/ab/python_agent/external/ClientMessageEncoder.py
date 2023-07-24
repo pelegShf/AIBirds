@@ -70,6 +70,13 @@ def get_my_score():
     return message
 
 
+def get_best_scores():
+    message = bytearray(1)
+    message[0] = CMT.get_value_byte(CMT.getBestScores)
+    return message
+
+
+
 def fully_zoom_in():
     message = bytearray(1)
     message[0] = CMT.get_value_byte(CMT.fullyZoomIn)
@@ -101,7 +108,6 @@ def c_shoot(focus_x, focus_y, dx, dy, t1, t2):
     dy_bytes = dy.to_bytes(length=4, byteorder='big', signed=True)
     t1_bytes = t1.to_bytes(length=4, byteorder='big')
     t2_bytes = t2.to_bytes(length=4, byteorder='big')
-    msg_lst = [bytearray(msg_id), focus_x_bytes, focus_y_bytes, dx_bytes, dy_bytes, t1_bytes, t2_bytes]
     message = bytearray(25)
     message[0] = msg_id
     message[1:] = focus_x_bytes
@@ -110,16 +116,6 @@ def c_shoot(focus_x, focus_y, dx, dy, t1, t2):
     message[13:] = dy_bytes
     message[18:] = t1_bytes
     message[21:] = t2_bytes
-
-    msg = b""
-    for param in msg_lst:
-        msg += param
-
-    print(message)
-    print(msg)
-
-    # for i, msg in enumerate(msg_lst):
-    #     message[(i * 4) + 1] = msg
     return message
 
 
