@@ -5,7 +5,7 @@ import sys
 from PIL import Image
 
 from external.ClientMessageEncoder import configure, get_state, load_level, do_screen_shot, get_my_score, restart_level, \
-    fully_zoom_in, fully_zoom_out, c_shoot, p_shoot, c_fast_shoot, p_fast_shoot, get_best_scores
+    fully_zoom_in, fully_zoom_out, c_shoot, p_shoot, c_fast_shoot, p_fast_shoot, get_best_scores, get_current_level
 
 from utils import decode_byte_to_int
 
@@ -103,6 +103,28 @@ class ClientActionRobot:
         except socket.error as e:
             print("Connection error: %s" % e)
             sys.exit(1)
+
+
+    def get_current_level(self):
+        """Sends request for game current level to the server
+
+
+            :return: int representing the level
+            :rtype: int
+              """
+        try:
+            message = get_current_level()
+            self.client_socket.sendall(message)
+
+            response = self.client_socket.recv(1)
+            state_data = decode_byte_to_int(response)  # [ordinal]
+
+            return state_data
+
+        except socket.error as e:
+            print("Connection error: %s" % e)
+            sys.exit(1)
+
 
     def restart_level(self):
         """restart current level.

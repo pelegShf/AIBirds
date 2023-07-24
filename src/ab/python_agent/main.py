@@ -15,6 +15,7 @@ def run():
     # resp = ar.restart_level()
     # zoomed_in = ar.fully_zoom_in()
     # zoomed_out = ar.fully_zoom_out()
+    current_level = ar.get_current_level()
     for i in range(3):  # sequence of shots
         makeshot = ar.c_shoot(196, 326, -40, 20, 0, 0)  # shot in cartesian random values
         # makeshot = ar.p_shoot(196, 326, 40, -30, 0, 0)  # shot in polar random values
