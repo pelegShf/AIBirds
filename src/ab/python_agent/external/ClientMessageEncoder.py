@@ -70,6 +70,12 @@ def do_screen_shot():
     return message
 
 
+def click_in_center():
+    message = bytearray(1)
+    message[0] = CMT.get_value_byte(CMT.clickInCentre)
+    return message
+
+
 def get_my_score():
     message = bytearray(1)
     message[0] = CMT.get_value_byte(CMT.getMyScore)
