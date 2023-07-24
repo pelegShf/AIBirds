@@ -5,7 +5,8 @@ import sys
 from PIL import Image
 
 from external.ClientMessageEncoder import configure, get_state, load_level, do_screen_shot, get_my_score, restart_level, \
-    fully_zoom_in, fully_zoom_out, c_shoot, p_shoot, c_fast_shoot, p_fast_shoot, get_best_scores, get_current_level
+    fully_zoom_in, fully_zoom_out, c_shoot, p_shoot, c_fast_shoot, p_fast_shoot, get_best_scores, get_current_level, \
+    click_in_center
 
 from utils import decode_byte_to_int
 
@@ -178,6 +179,27 @@ class ClientActionRobot:
             img_dir = f'{image_fname}.jpg'
             img.save(img_dir)
             return img_dir
+        except socket.error as e:
+            print("Connection error: %s" % e)
+            sys.exit(1)
+
+
+    def click_in_center(self):
+        """click in the center of the screen
+
+
+        The server will make a click in the centre of the screen on receiving this message. You can use this message to move the camera of the game.
+        :return: 1 made a centre click in the current game | 0 cannot make a centre click.
+        :rtype:  int
+            """
+        try:
+            message = click_in_center()
+            self.client_socket.sendall(message)
+
+            response = self.client_socket.recv(1)
+            response = decode_byte_to_int(response)  # [1/0]
+
+            return response
         except socket.error as e:
             print("Connection error: %s" % e)
             sys.exit(1)
