@@ -66,8 +66,8 @@ class ClientActionRobot:
             [0]: UNKNOWN | [1] : MAIN_MENU | [2]: EPISODE_MENU | [3]: LEVEL_SELECTION
             [4]: LOADING | [5]: PLAYING | [6]: WON | [7]: LOST
 
-            :return: int representing the state
-            :rtype: int
+            :return: int array representing the state
+            :rtype: List[int]
               """
         try:
             message = get_state()
