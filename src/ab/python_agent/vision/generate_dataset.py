@@ -227,3 +227,4 @@ for (dataset_size, images_dir, labels_dir) in [(train_dataset_size, train_images
                     img_height, img_width, _ = img_.shape
                     label_file.write(f"{label_int}, {(xc + location_x) / img_width}, {(yc + location_y) / img_height}, "
                                      f"{w / img_width}, {h / img_height}\n")
+

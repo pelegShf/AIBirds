@@ -1,2 +1,15 @@
 src/ab/python_agent/vision/dataset/
 .idea
+
+# Ignore the "runs" folder in the root directory
+runs/
+
+# Ignore the "venv" folder in the root directory
+**/venv/
+
+# Ignore the "dataset" folder in any subdirectory
+**/dataset/
+
+
+# Ignore the "dataset" folder in any subdirectory
+**/.idea/
