@@ -3,6 +3,7 @@ from os.path import dirname, abspath, join
 import sys
 import re
 
+
 # Find code directory relative to our directory
 THIS_DIR = dirname(__file__)
 CODE_DIR = abspath(join(THIS_DIR, '..'))
@@ -57,6 +58,7 @@ class AngryBirdGame(Env):
         new_observation = self.get_observation()
         # Check if game is done
         done, is_win = self.get_done()
+        
         if not done:
             img_dir = self.ar.do_screen_shot()
             image = cv2.imread(img_dir)
@@ -79,6 +81,7 @@ class AngryBirdGame(Env):
         info = {'is_win': is_win["is_win"]}
         if info["is_win"]:
             self.current_level = self.current_level + 1
+
         return new_observation, reward, done, False, info
 
     def render(self):
@@ -122,6 +125,7 @@ class AngryBirdGame(Env):
         else:
             print('not good err')
             return True, {'is_win': False}
+
 
     def _get_next_level(self):
         level = 0
@@ -192,7 +196,6 @@ def train(env):
         lvl = 1
         while not done:
             obs, reward, done, trunct, info = env.step(env.action_space.sample())
-
             total_reward = total_reward + (reward - total_reward)
         print(f'Total reward for episode {episode} is {total_reward}')
         print('______________________________')
@@ -230,3 +233,4 @@ model.learn(total_timesteps=100000, callback=callback)
 
 # TESTING
 # test_model(env)
+
