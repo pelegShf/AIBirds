@@ -1,3 +1,6 @@
+src/ab/python_agent/vision/dataset/
+.idea
+
 # Ignore the "runs" folder in the root directory
 runs/
 
