@@ -1,32 +1,49 @@
+import cv2
+import matplotlib.pyplot as plt
 import numpy as np
+from PIL import Image
+from mpmath import inf
+from ultralytics import YOLO
+
+from consts import SLINGSHOT_BOUNDRIES, CROP_X, CROP_Y, DEFAULT_SLINGSHOT
 
 
-def yolo8_to_numpy_array(yolo8_file_path, resolution=(840, 480)):
-    # Initialize the numpy array with zeros
-    width, height = resolution
-    numpy_array = np.zeros((height, width))
+def get_slingshot(img_dir, model='./vision/best.pt'):
+    model = YOLO(model)
+    results = model(img_dir)  # predict on an image
 
-    with open(yolo8_file_path, 'r') as file:
-        for line in file:
-            # Each line in the file represents a bounding box in YOLO8 format (class, x, y, width, height)
-            class_idx, x_center, y_center, box_width, box_height = map(float, line.split())
+    y_min = inf
+    x_min = inf
+    for result in results:
+        for box in result.boxes:
+            # Uncomment lines bellow to see YOLO rectangles
+            # x1, y1, x2, y2 = box.xyxy[0]
+            # cv2.rectangle(cropped_image_rgb, (int(x1.item()), int(y1.item())), (int(x2.item()), int(y2.item())), (0, 255, 0), 2)
 
-            # Convert YOLO8 format to pixel coordinates
-            x1 = int((x_center - box_width / 2) * width)
-            y1 = int((y_center - box_height / 2) * height)
-            x2 = int((x_center + box_width / 2) * width)
-            y2 = int((y_center + box_height / 2) * height)
+            if box.cls[0] == 8.:
+                dim = box.xyxy[0]
+                x_center = ((dim[0] + dim[2]) / 2).item()
+                y_center = ((dim[1] + dim[3]) / 2).item()
+                if SLINGSHOT_BOUNDRIES[0] < x_center < SLINGSHOT_BOUNDRIES[2] and SLINGSHOT_BOUNDRIES[1] < y_center < \
+                        SLINGSHOT_BOUNDRIES[3]:
+                    if y_center < y_min:
+                        x_min = x_center
+                        y_min = y_center
+        # plt.imshow(cropped_image_rgb)
+        # plt.show()
+        if x_min == inf or y_min == inf:
+            x_min = DEFAULT_SLINGSHOT[0] - CROP_X
+            y_min = DEFAULT_SLINGSHOT[1] - CROP_Y
 
-            # Set the corresponding cells in the numpy array to the class value
-            numpy_array[y1:y2, x1:x2] = class_idx
-    return numpy_array
+    return int(x_min) + CROP_X, int(y_min - 24) + CROP_Y
 
 
-yolo8_file_path = './dataset/labels/train/1.txt'
-resolution = (840, 480)
-resulting_numpy_array = yolo8_to_numpy_array(yolo8_file_path, resolution)
-print(np.sum(resulting_numpy_array))
-file = open("file2.txt", "w+")
-content = str(resulting_numpy_array)
-file.write(content)
-file.close()
+def crop_img(img_dir):
+    image = Image.open(img_dir)
+    img = np.asarray(image)
+    crop = img[110:400, 70:800]
+    cropped_image_rgb = cv2.cvtColor(crop, cv2.COLOR_BGR2RGB)
+
+    cropped_image_path = 'tmp.jpg'
+    cv2.imwrite(cropped_image_path, cropped_image_rgb)
+    return cropped_image_rgb, cropped_image_path
