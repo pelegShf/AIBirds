@@ -6,7 +6,6 @@ LOG_DIR = './logs/'
 ERROR_DIR = './errors/'
 MODELS_DIR = './train/'
 
-
 # SERVER CONFIG
 TEAM_ID = 2888
 SERVER_ADDRESS = '127.0.0.1'
@@ -26,10 +25,13 @@ STATE_LOST = 7
 SCREEN_WIDTH = 840
 SCREEN_HEIGHT = 480
 
-GAME_WIDTH = 840
-GAME_HEIGHT = 480
+GAME_WIDTH = 128
+GAME_HEIGHT = 73
 GAME_BATCH = 1
+CHANNELS = 3
+
 GAME_ACTION_SPACE = 30
+COMPRESSED_STATE = 128
 
 ACTION_MAP = {
     0: [-10, 10],
@@ -65,6 +67,40 @@ ACTION_MAP = {
 
 }
 
+ACTION_MAP_P = {
+    0: [10, 0],
+    1: [10, 20],
+    2: [10, 30],
+    3: [10, 40],
+    4: [10, 50],
+    5: [10, 60],
+    6: [10, 70],
+    7: [10, 80],
+    8: [10, 90],
+    9: [10, -10],
+    10: [20, 0],
+    11: [20, 20],
+    12: [20, 30],
+    13: [20, 40],
+    14: [20, 50],
+    15: [20, 60],
+    16: [20, 70],
+    17: [20, 80],
+    18: [20, 90],
+    19: [20, -10],
+    20: [30, 0],
+    21: [30, 20],
+    22: [30, 30],
+    23: [30, 40],
+    24: [30, 50],
+    25: [30, 60],
+    26: [30, 70],
+    27: [30, 80],
+    28: [30, 90],
+    29: [30, -10],
+
+}
+
 SCORE_NORMALIZATION = 10000
 
 # OCR STUFF
@@ -73,3 +109,6 @@ REWARD_BOTTOM = 51
 REWARD_LEFT = 670
 REWARD_RIGHT = 790
 
+CROP_X = 70
+CROP_Y = 110
+SLINGSHOT_BOUNDRIES = [70, 100, 400, 380]  # X MIN, Y MIN, X MAX, Y MAX

@@ -3,7 +3,6 @@ from os.path import dirname, abspath, join
 import sys
 import re
 
-
 # Find code directory relative to our directory
 THIS_DIR = dirname(__file__)
 CODE_DIR = abspath(join(THIS_DIR, '..'))
@@ -11,6 +10,8 @@ sys.path.append(CODE_DIR)
 
 from consts import *
 from other.clientActionRobot import *
+from vision.game_state_extractor import get_slingshot, crop_img
+
 import cv2
 import numpy as np
 from matplotlib import pyplot as plt
@@ -36,29 +37,32 @@ class AngryBirdGame(Env):
         self.ar = ClientActionRobot(SERVER_ADDRESS, SERVER_PORT, TEAM_ID)
         # low/high - inputs value, shape(batch,height,width), datatype
         self.observation_space = Box(low=0, high=255,
-                                     shape=(GAME_BATCH, GAME_HEIGHT, GAME_WIDTH),
+                                     shape=(GAME_HEIGHT, GAME_WIDTH, CHANNELS),
                                      dtype=np.uint8)
         # TODO: need to check out continues action space.
         self.action_space = Discrete(GAME_ACTION_SPACE)
-        # Top right corner, get score during round.
-        self.reward_location = {'top': 50, 'left': 630, 'width': 100, 'height': 50}
 
         # config message, and gets the [Round Info, Time_limit , Number of Levels]
         config = self.ar.configure()  # configures message to the server
         self.solved = [0] * config[2]
         self.current_level = 1
+        # basic values for slingshot
+        self.slingshotX = 196
+        self.slingshotY = 326
 
     def step(self, action):
         # Action key - [dx,dy]
         print(f'using action: {action}')
         # SEND ACTION TO SERVER (196,326)
-        makeshot = self.ar.c_shoot(191, 344, ACTION_MAP[action][0], ACTION_MAP[action][1], 0,
-                                   0)  # shot in cartesian random values
+        # makeshot = self.ar.c_shoot(191, 344, ACTION_MAP[action][0], ACTION_MAP[action][1], 0,
+        #                            0)
+        makeshot = self.ar.c_shoot(self.slingshotX, self.slingshotY, ACTION_MAP[action][0], ACTION_MAP[action][1], 0,
+                                   0)
         # Get the next observation
         new_observation = self.get_observation()
         # Check if game is done
         done, is_win = self.get_done()
-        
+
         if not done:
             img_dir = self.ar.do_screen_shot()
             image = cv2.imread(img_dir)
@@ -82,7 +86,7 @@ class AngryBirdGame(Env):
         if info["is_win"]:
             self.current_level = self.current_level + 1
 
-        return new_observation, reward, done, False, info
+        return new_observation, reward / SCORE_NORMALIZATION, done, False, info
 
     def render(self):
         cv2.imshow('Game', self.ar.do_screen_shot())
@@ -94,7 +98,7 @@ class AngryBirdGame(Env):
         state = self.ar.get_state()[0]
         if state == STATE_WON or state == STATE_LEVEL_SELECTION:
             load_lvl = env.ar.load_level(self.current_level)  # TODO: add an if load_lvl failed?
-        else:
+        elif state == STATE_LOST:
             self.ar.restart_level()
         new_observ = self.get_observation()
         return new_observ, {}
@@ -105,13 +109,17 @@ class AngryBirdGame(Env):
     def get_observation(self, return_raw=False):
         # get screen caputre of game
         img_dir = self.ar.do_screen_shot()
-        image = Image.open(img_dir)
-        raw = np.array(image)
+        cropped_img, cropped_img_dir = crop_img(img_dir)
 
-        gray = cv2.cvtColor(raw, cv2.COLOR_BGR2GRAY)
-        resized = cv2.resize(gray, (SCREEN_HEIGHT, SCREEN_WIDTH))
-        channel = np.reshape(resized, (GAME_BATCH, SCREEN_HEIGHT, SCREEN_WIDTH))
-        return channel
+        x, y = get_slingshot(cropped_img_dir)
+        self.slingshotX = x
+        self.slingshotY = y
+        print(x, y)
+
+        img = cv2.cvtColor(cropped_img, cv2.COLOR_BGR2RGB)
+        img = cv2.resize(img, (GAME_WIDTH, GAME_HEIGHT), interpolation=cv2.INTER_AREA)
+
+        return img
 
     def get_done(self):
         state = self.ar.get_state()[0]
@@ -125,7 +133,6 @@ class AngryBirdGame(Env):
         else:
             print('not good err')
             return True, {'is_win': False}
-
 
     def _get_next_level(self):
         level = 0
@@ -190,10 +197,8 @@ class TrainAndLoggingCallback(BaseCallback):
 
 def train(env):
     for episode in range(5):
-        # obs = env.reset()
         done = False
         total_reward = 0
-        lvl = 1
         while not done:
             obs, reward, done, trunct, info = env.step(env.action_space.sample())
             total_reward = total_reward + (reward - total_reward)
@@ -205,7 +210,6 @@ def test_model(env):
     model_path = f'{MODELS_DIR}/best_model_5000.zip'
     model = DQN.load(model_path, env)
     for episode in range(5):
-        obs = env.reset()
         done = False
         total_reward = 0
         while not done:
@@ -220,8 +224,7 @@ def test_model(env):
 print('started to run')
 
 env = AngryBirdGame()
-env_checker.check_env(env)
-callback = TrainAndLoggingCallback(check_freq=1000, save_path=CHECKPOINT_DIR)
+# env_checker.check_env(env)
 
 # create DQN model policy, the enviorment, where to save logs, verbose logs, how big is the buffer depends on RAM,
 # start training after 1000 steps
@@ -229,8 +232,8 @@ model = DQN('CnnPolicy', env, tensorboard_log=LOG_DIR, verbose=1, buffer_size=12
 print(model)
 
 # TRAIN
+callback = TrainAndLoggingCallback(check_freq=1000, save_path=CHECKPOINT_DIR)
 model.learn(total_timesteps=100000, callback=callback)
 
 # TESTING
 # test_model(env)
-
