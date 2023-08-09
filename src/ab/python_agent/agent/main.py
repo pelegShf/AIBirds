@@ -39,11 +39,10 @@ class AngryBirdGame(Env):
         self.observation_space = Box(low=0, high=255,
                                      shape=(GAME_HEIGHT, GAME_WIDTH, CHANNELS),
                                      dtype=np.uint8)
-        # TODO: need to check out continues action space.
         self.action_space = Discrete(GAME_ACTION_SPACE)
-
         # config message, and gets the [Round Info, Time_limit , Number of Levels]
         config = self.ar.configure()  # configures message to the server
+        self.state = self.ar.get_state()[0]
         self.solved = [0] * config[2]
         self.current_level = 1
         # basic values for slingshot
@@ -106,15 +105,15 @@ class AngryBirdGame(Env):
     def close(self):
         cv2.destroyAllWindows()
 
-    def get_observation(self, return_raw=False):
+    def get_observation(self, state=STATE_PLAYING):
         # get screen caputre of game
         img_dir = self.ar.do_screen_shot()
         cropped_img, cropped_img_dir = crop_img(img_dir)
-
-        x, y = get_slingshot(cropped_img_dir)
-        self.slingshotX = x
-        self.slingshotY = y
-        print(x, y)
+        if state == STATE_PLAYING:
+            x, y = get_slingshot(cropped_img_dir)
+            self.slingshotX = x
+            self.slingshotY = y
+            print(x, y)
 
         img = cv2.cvtColor(cropped_img, cv2.COLOR_BGR2RGB)
         img = cv2.resize(img, (GAME_WIDTH, GAME_HEIGHT), interpolation=cv2.INTER_AREA)
@@ -122,13 +121,13 @@ class AngryBirdGame(Env):
         return img
 
     def get_done(self):
-        state = self.ar.get_state()[0]
-        if state == STATE_WON:
+        self.state = self.ar.get_state()[0]
+        if self.state == STATE_WON:
             self.solved[self.current_level - 1] = 1
             return True, {'is_win': True}
-        elif state == STATE_LOST:
+        elif self.state == STATE_LOST:
             return True, {'is_win': False}
-        elif state == STATE_PLAYING:
+        elif self.state == STATE_PLAYING:
             return False, {'is_win': False}
         else:
             print('not good err')
@@ -162,7 +161,6 @@ class AngryBirdGame(Env):
             level = level + 1
 
     def _check_OCR(self, ocr_text, img):
-        # TODO: fix the check if a number is returned from the OCR
         if ocr_text.isnumeric():
             return True
         else:
@@ -224,9 +222,9 @@ def test_model(env):
 print('started to run')
 
 env = AngryBirdGame()
-# env_checker.check_env(env)
+env_checker.check_env(env)
 
-# create DQN model policy, the enviorment, where to save logs, verbose logs, how big is the buffer depends on RAM,
+# create DQN model policy, the environment, where to save logs, verbose logs, how big is the buffer depends on RAM,
 # start training after 1000 steps
 model = DQN('CnnPolicy', env, tensorboard_log=LOG_DIR, verbose=1, buffer_size=12000, learning_starts=1000)
 print(model)

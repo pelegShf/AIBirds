@@ -4,22 +4,20 @@ import numpy as np
 from PIL import Image
 from mpmath import inf
 from ultralytics import YOLO
-from ultralytics.utils.plotting import save_one_box
 
-from consts import SLINGSHOT_BOUNDRIES
+from consts import SLINGSHOT_BOUNDRIES, CROP_X, CROP_Y, DEFAULT_SLINGSHOT
 
 
 def get_slingshot(img_dir, model='./vision/best.pt'):
-    model = YOLO(model)  # load a pretrained model (recommended for training)
-
+    model = YOLO(model)
     results = model(img_dir)  # predict on an image
+
     y_min = inf
     x_min = inf
     for result in results:
         for box in result.boxes:
-            x1, y1, x2, y2 = box.xyxy[0]
-            cls = box.cls[0]
-            # conf_lvl = box.con[2]
+            # Uncomment lines bellow to see YOLO rectangles
+            # x1, y1, x2, y2 = box.xyxy[0]
             # cv2.rectangle(cropped_image_rgb, (int(x1.item()), int(y1.item())), (int(x2.item()), int(y2.item())), (0, 255, 0), 2)
 
             if box.cls[0] == 8.:
@@ -33,13 +31,11 @@ def get_slingshot(img_dir, model='./vision/best.pt'):
                         y_min = y_center
         # plt.imshow(cropped_image_rgb)
         # plt.show()
-    return int(x_min) + 70, int(y_min - 24) + 110
+        if x_min == inf or y_min == inf:
+            x_min = DEFAULT_SLINGSHOT[0] - CROP_X
+            y_min = DEFAULT_SLINGSHOT[1] - CROP_Y
 
-    # boxes = result[1].boxes.numpy()  # Boxes object for bbox outputs
-    # for box in boxes:  # there could be more than one detection
-    #     print("class", box.cls)
-    #     print("xyxy", box.xyxy)
-    #     print("conf", box.conf)
+    return int(x_min) + CROP_X, int(y_min - 24) + CROP_Y
 
 
 def crop_img(img_dir):
