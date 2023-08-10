@@ -149,8 +149,10 @@ birds_dir = "/home/david/AIBirds/src/ab/python_agent/vision/resources/birds/"
 ice_dir = "/home/david/AIBirds/src/ab/python_agent/vision/resources/ice/"
 stone_dir = "/home/david/AIBirds/src/ab/python_agent/vision/resources/stone/"
 wood_dir = "/home/david/AIBirds/src/ab/python_agent/vision/resources/wood/"
+tnt_dir = "/home/david/AIBirds/src/ab/python_agent/vision/resources/tnt/"
+hill_dir = "/home/david/AIBirds/src/ab/python_agent/vision/resources/hill/"
 
-object_dirs = [pigs_dir, birds_dir, ice_dir, stone_dir, wood_dir]
+object_dirs = [pigs_dir, birds_dir, ice_dir, stone_dir, wood_dir, tnt_dir, hill_dir]
 
 label_to_image, label_to_mask = get_label_map(object_dirs)
 
@@ -166,7 +168,6 @@ def get_background(background_dir):
     backgrounds_file = backgrounds_list[backgrounds_idx]
     background_path = os.path.join(background_dir, backgrounds_file)
     background_ = cv2.imread(background_path)
-    background_ = cv2.resize(background_, (1200, 650))
     background = np.ones((background_.shape[0], background_.shape[1], 4), dtype=np.uint8) * 255
     background[:, :, :3] = background_
     return background
@@ -185,8 +186,11 @@ def place_object(obj_img: np.ndarray, obj_mask: np.ndarray, background_img: np.n
     background_height, background_width, _ = background_img.shape
     done = False
     while not done:
-        location_y, location_x = random.randint(object_height, background_height - object_height), \
-            random.randint(object_width, background_width - object_width)
+        try:
+            location_y, location_x = random.randint(object_height, background_height - object_height), \
+                random.randint(object_width, background_width - object_width)
+        except:
+            continue
 
         taken_y, taken_x = np.where(obj_mask != 0)
         taken_x += location_x
@@ -259,15 +263,21 @@ for (dataset_size, images_dir, labels_dir) in [(train_dataset_size, train_images
 
                     h, w, _ = obj_img.shape
                     ratio = h / w
-                    resize_ = 25
+                    resize_h = 20
+                    resize_w = 20
                     print(ratio)
                     if ratio < 0.15:
-                        resize_ = 100
+                        resize_w = 60
+                        resize_h = 15
                     elif ratio < 0.5:
-                        resize_ = 50
+                        resize_w = 40
+                        resize_h = 40
+                    if "hill" in label_str:
+                        resize_w = random.randint(50, 150)
+                        resize_h = random.randint(50, 150)
 
-                    obj_img = image_resize(obj_img, resize_, resize_)
-                    obj_mask = image_resize(obj_mask, resize_, resize_)
+                    obj_img = image_resize(obj_img, resize_w, resize_h)
+                    obj_mask = image_resize(obj_mask, resize_w, resize_h)
 
                     object_rotation_angle = random.randint(0, 359)
                     obj_img = rotate_object(obj_img, object_rotation_angle)

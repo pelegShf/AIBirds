@@ -8,11 +8,12 @@ val:
 # Classes
 names:
   0: pig
-  1: reb_big_bird
-  2: black_bird
-  3: red_bird
-  4: white_bird
-  5: yellow_bird
-  6: ice
-  7: stone
-  8: wood
+  1: black_bird
+  2: red_bird
+  3: white_bird
+  4: yellow_bird
+  5: ice
+  6: stone
+  7: wood
+  8: tnt
+  9: hill
