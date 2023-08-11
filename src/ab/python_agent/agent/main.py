@@ -3,6 +3,8 @@ from os.path import dirname, abspath, join
 import sys
 import re
 
+from ultralytics import YOLO
+
 # Find code directory relative to our directory
 THIS_DIR = dirname(__file__)
 CODE_DIR = abspath(join(THIS_DIR, '..'))
@@ -115,10 +117,14 @@ class AngryBirdGame(Env):
             self.slingshotY = y
             print(x, y)
 
-        img = cv2.cvtColor(cropped_img, cv2.COLOR_BGR2RGB)
-        img = cv2.resize(img, (GAME_WIDTH, GAME_HEIGHT), interpolation=cv2.INTER_AREA)
-
-        return img
+        model = YOLO(
+            "/home/aharrar/Desktop/AIBirds/runs/segment/train12/weights/best.pt")  # load a pretrained model (recommended for training)
+        # Use the model
+        results = model(cropped_img)
+        masks = results[0].masks.data.detach().numpy()
+        state = np.resize(masks.sum(axis=0), (GAME_BATCH, GAME_HEIGHT, GAME_WIDTH))
+        state.astype(np.uint8)
+        return state.astype(np.uint8)
 
     def get_done(self):
         self.state = self.ar.get_state()[0]
