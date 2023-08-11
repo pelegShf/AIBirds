@@ -5,6 +5,8 @@ CHECKPOINT_DIR = './train'
 LOG_DIR = './logs/'
 ERROR_DIR = './errors/'
 MODELS_DIR = './train/'
+BEST_MODEL_DIR = f'{MODELS_DIR}best_model3_1000.zip'
+PYTESSERACT_DIR = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
 
 # SERVER CONFIG
 TEAM_ID = 2888
@@ -106,3 +108,5 @@ CROP_Y = 110
 
 SLINGSHOT_BOUNDRIES = [70, 100, 400, 380]  # X MIN, Y MIN, X MAX, Y MAX
 DEFAULT_SLINGSHOT = [192, 326]
+
+

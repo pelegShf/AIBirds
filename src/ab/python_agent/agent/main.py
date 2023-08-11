@@ -1,5 +1,7 @@
 from datetime import datetime
 from os.path import dirname, abspath, join
+import argparse
+import os
 import sys
 import re
 
@@ -33,7 +35,7 @@ class AngryBirdGame(Env):
 
     def __init__(self):
         super().__init__()
-        pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
+        pytesseract.pytesseract.tesseract_cmd = PYTESSERACT_DIR
         self.ar = ClientActionRobot(SERVER_ADDRESS, SERVER_PORT, TEAM_ID)
         # low/high - inputs value, shape(batch,height,width), datatype
         self.observation_space = Box(low=0, high=255,
@@ -52,11 +54,9 @@ class AngryBirdGame(Env):
     def step(self, action):
         # Action key - [dx,dy]
         print(f'using action: {action}')
-        # SEND ACTION TO SERVER (196,326)
-        # makeshot = self.ar.c_shoot(191, 344, ACTION_MAP[action][0], ACTION_MAP[action][1], 0,
-        #                            0)
-        makeshot = self.ar.c_shoot(self.slingshotX, self.slingshotY, ACTION_MAP[action][0], ACTION_MAP[action][1], 0,
-                                   0)
+        # SEND ACTION TO SERVER
+        makeshot = self.ar.c_shoot(self.slingshotX, self.slingshotY, ACTION_MAP[action][0], ACTION_MAP[action][1],
+                                   0, 0)
         # Get the next observation
         new_observation = self.get_observation()
         # Check if game is done
@@ -70,7 +70,11 @@ class AngryBirdGame(Env):
             grayImage = cv2.cvtColor(cropped, cv2.COLOR_BGR2GRAY)
 
             (thresh, blackAndWhiteImage) = cv2.threshold(grayImage, 170, 255, cv2.THRESH_BINARY)
-            res = pytesseract.image_to_string(blackAndWhiteImage, config="--psm 10")
+            try:
+                res = pytesseract.image_to_string(blackAndWhiteImage, config="--psm 10")
+            except Exception as e:
+                print(e)
+                res = 0
             # reward = int(res) if self._check_OCR(res,blackAndWhiteImage) else 0
             if re.match("^[0-9 ]+$", res):
                 reward = int(res)
@@ -96,7 +100,7 @@ class AngryBirdGame(Env):
         super().reset(seed=seed)
         state = self.ar.get_state()[0]
         if state == STATE_WON or state == STATE_LEVEL_SELECTION:
-            load_lvl = env.ar.load_level(self.current_level)  # TODO: add an if load_lvl failed?
+            load_lvl = self.ar.load_level(self.current_level)  # TODO: add an if load_lvl failed?
         elif state == STATE_LOST:
             self.ar.restart_level()
         new_observ = self.get_observation()
@@ -187,7 +191,7 @@ class TrainAndLoggingCallback(BaseCallback):
 
     def _on_step(self) -> bool:
         if self.n_calls % self.check_freq == 0:
-            model_path = os.path.join(self.save_path, 'best_model_{}'.format(self.n_calls))
+            model_path = os.path.join(self.save_path, 'best_model3_{}'.format(self.n_calls))
             self.model.save(model_path)
 
         return True
@@ -204,34 +208,67 @@ def train(env):
         print('______________________________')
 
 
-def test_model(env):
-    model_path = f'{MODELS_DIR}/best_model_5000.zip'
-    model = DQN.load(model_path, env)
-    for episode in range(5):
+def test_model(env, model, lvls):
+    lvl = 1
+    while lvl <= int(lvls):
         done = False
         total_reward = 0
+        obs = env.reset()
         while not done:
             action, _ = model.predict(obs)
             obs, reward, done, trunct, info = env.step(int(action))
-            time.sleep(0.01)
             total_reward = total_reward + (reward - total_reward)
-        print(f'Total reward for episode {episode} is {total_reward}')
-        print('______________________________')
+            if info['is_win']:
+                lvl = lvl + 1
 
 
-print('started to run')
+def main():
+    print('started to run')
+    parser = argparse.ArgumentParser(description="Process mode and pre-trained directory")
 
-env = AngryBirdGame()
-env_checker.check_env(env)
+    parser.add_argument("mode", choices=["train", "test"], help="Mode: train or test")
+    parser.add_argument("--pre-trained-dir", help="Pre-trained directory", default=None)
+    parser.add_argument("--levels", help="amount of levels, defaults 21", default=21)
 
-# create DQN model policy, the environment, where to save logs, verbose logs, how big is the buffer depends on RAM,
-# start training after 1000 steps
-model = DQN('CnnPolicy', env, tensorboard_log=LOG_DIR, verbose=1, buffer_size=12000, learning_starts=1000)
-print(model)
+    args = parser.parse_args()
+    mode = args.mode
+    pre_trained_dir = args.pre_trained_dir
+    lvls = args.levels
+    if mode is None:
+        print("Error: Please provide a mode ('train' or 'test').")
+        print(f'A default value of test has started using the preset model. {BEST_MODEL_DIR} ')
+        pre_trained_dir = BEST_MODEL_DIR
 
-# TRAIN
-callback = TrainAndLoggingCallback(check_freq=1000, save_path=CHECKPOINT_DIR)
-model.learn(total_timesteps=100000, callback=callback)
+    if pre_trained_dir is not None and not os.path.isdir(pre_trained_dir):
+        print("Error: The specified pre-trained directory does not exist.")
+        return
 
-# TESTING
-# test_model(env)
+    if mode == 'test' and pre_trained_dir is None:
+        print("Error: no model has been given.")
+        print(f'Using our best model: {BEST_MODEL_DIR} ')
+        pre_trained_dir = BEST_MODEL_DIR
+    # Your code using the mode and pre_trained_dir goes here
+    print("Mode:", mode)
+    print("Pre-trained directory:", pre_trained_dir)
+    env = AngryBirdGame()
+    env_checker.check_env(env)
+    try:
+        if mode == 'train':
+            model = DQN('CnnPolicy', env, tensorboard_log=LOG_DIR, verbose=1, buffer_size=12000, learning_starts=1000)
+            callback = TrainAndLoggingCallback(check_freq=500, save_path=CHECKPOINT_DIR)
+            model.learn(total_timesteps=10000, callback=callback)
+
+        elif mode == 'test':
+            model_path = BEST_MODEL_DIR
+            model = DQN.load(model_path)
+            model.set_env(env)
+            test_model(env, model, lvls)
+        else:
+            print("Something strange has happened, please try again.")
+    except ValueError as ve:
+        print("Error:", ve)
+        print("Need to enter train or test mode. Can also enter path to a pre-trained model.")
+
+
+if __name__ == '__main__':
+    main()
