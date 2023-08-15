@@ -6,6 +6,7 @@ LOG_DIR = './logs/'
 ERROR_DIR = './errors/'
 MODELS_DIR = './train/'
 BEST_MODEL_DIR = f'{MODELS_DIR}PPO_2000.zip'
+
 PYTESSERACT_DIR = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
 
 # SERVER CONFIG

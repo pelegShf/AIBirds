@@ -59,6 +59,7 @@ class AngryBirdGame(Env):
         if state == STATE_PLAYING:
             makeshot = self.ar.c_shoot(self.slingshotX, self.slingshotY, ACTION_MAP[action][0], ACTION_MAP[action][1],
                                        0, 0)
+
         # Get the next observation
         new_observation = self.get_observation()
         # Check if game is done
@@ -195,6 +196,7 @@ class TrainAndLoggingCallback(BaseCallback):
     def _on_step(self) -> bool:
         if self.n_calls % self.check_freq == 0:
             model_path = os.path.join(self.save_path, 'PPO_{}'.format(self.n_calls))
+
             self.model.save(model_path)
 
         return True
@@ -245,6 +247,7 @@ def main():
     # if pre_trained_dir is not None and not os.path.isdir(pre_trained_dir):
     #     print("Error: The specified pre-trained directory does not exist.")
     #     return
+
 
     if mode == 'test' and pre_trained_dir is None:
         print("Error: no model has been given.")
