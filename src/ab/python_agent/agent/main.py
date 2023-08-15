@@ -28,7 +28,7 @@ from stable_baselines3.common.callbacks import BaseCallback
 from stable_baselines3.common import env_checker
 
 # IMPORT NETWORK STUFF
-from stable_baselines3 import DQN
+from stable_baselines3 import DQN, PPO
 
 
 class AngryBirdGame(Env):
@@ -55,8 +55,10 @@ class AngryBirdGame(Env):
         # Action key - [dx,dy]
         print(f'using action: {action}')
         # SEND ACTION TO SERVER
-        makeshot = self.ar.c_shoot(self.slingshotX, self.slingshotY, ACTION_MAP[action][0], ACTION_MAP[action][1],
-                                   0, 0)
+        state = self.ar.get_state()[0]
+        if state == STATE_PLAYING:
+            makeshot = self.ar.c_shoot(self.slingshotX, self.slingshotY, ACTION_MAP[action][0], ACTION_MAP[action][1],
+                                       0, 0)
         # Get the next observation
         new_observation = self.get_observation()
         # Check if game is done
@@ -82,14 +84,15 @@ class AngryBirdGame(Env):
                 reward = 0
         else:
             score = self.ar.get_my_score()
-            reward = score[self.current_level - 1]
-
+            reward = float(score[self.current_level - 1])
+        reward = reward / THREE_STARS_SCORES[self.current_level]
+        print(f'Reward: {reward}')
         # Info dict - not relevant
         info = {'is_win': is_win["is_win"]}
         if info["is_win"]:
             self.current_level = self.current_level + 1
 
-        return new_observation, reward / SCORE_NORMALIZATION, done, False, info
+        return new_observation, reward, done, False, info
 
     def render(self):
         cv2.imshow('Game', self.ar.do_screen_shot())
@@ -121,7 +124,7 @@ class AngryBirdGame(Env):
 
         img = cv2.cvtColor(cropped_img, cv2.COLOR_BGR2RGB)
         img = cv2.resize(img, (GAME_WIDTH, GAME_HEIGHT), interpolation=cv2.INTER_AREA)
-
+        # img = img.astype(np.float32) / 255.0
         return img
 
     def get_done(self):
@@ -191,7 +194,7 @@ class TrainAndLoggingCallback(BaseCallback):
 
     def _on_step(self) -> bool:
         if self.n_calls % self.check_freq == 0:
-            model_path = os.path.join(self.save_path, 'best_model3_{}'.format(self.n_calls))
+            model_path = os.path.join(self.save_path, 'PPO_{}'.format(self.n_calls))
             self.model.save(model_path)
 
         return True
@@ -239,9 +242,9 @@ def main():
         print(f'A default value of test has started using the preset model. {BEST_MODEL_DIR} ')
         pre_trained_dir = BEST_MODEL_DIR
 
-    if pre_trained_dir is not None and not os.path.isdir(pre_trained_dir):
-        print("Error: The specified pre-trained directory does not exist.")
-        return
+    # if pre_trained_dir is not None and not os.path.isdir(pre_trained_dir):
+    #     print("Error: The specified pre-trained directory does not exist.")
+    #     return
 
     if mode == 'test' and pre_trained_dir is None:
         print("Error: no model has been given.")
@@ -254,13 +257,24 @@ def main():
     env_checker.check_env(env)
     try:
         if mode == 'train':
-            model = DQN('CnnPolicy', env, tensorboard_log=LOG_DIR, verbose=1, buffer_size=12000, learning_starts=1000)
+            if pre_trained_dir is None:
+                print('Training from scratch')
+                # model = DQN('CnnPolicy', env, tensorboard_log=LOG_DIR, verbose=1, buffer_size=60000,
+                #              learning_starts=1000)
+                model = PPO("CnnPolicy", env, verbose=1, learning_rate=0.0003, gae_lambda=0.95, gamma=0.99, batch_size=128)
+            else:
+                print('using pre-trained')
+                model_path = BEST_MODEL_DIR
+                model = DQN.load(model_path)
+                model.set_env(env)
             callback = TrainAndLoggingCallback(check_freq=500, save_path=CHECKPOINT_DIR)
-            model.learn(total_timesteps=10000, callback=callback)
+            model.learn(total_timesteps=25000, callback=callback)
 
         elif mode == 'test':
+            print('test')
             model_path = BEST_MODEL_DIR
-            model = DQN.load(model_path)
+            # model = DQN.load(model_path)
+            model = PPO.load(model_path)
             model.set_env(env)
             test_model(env, model, lvls)
         else:
