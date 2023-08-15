@@ -5,7 +5,8 @@ CHECKPOINT_DIR = './train'
 LOG_DIR = './logs/'
 ERROR_DIR = './errors/'
 MODELS_DIR = './train/'
-BEST_MODEL_DIR = f'{MODELS_DIR}best_model3_1000.zip'
+BEST_MODEL_DIR = f'{MODELS_DIR}PPO_2000.zip'
+
 PYTESSERACT_DIR = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
 
 # SERVER CONFIG
@@ -93,6 +94,29 @@ ACTION_MAP = {
 
 }
 
+THREE_STARS_SCORES = {
+    1: 32000,
+    2: 60000,
+    3: 41000,
+    4:28000,
+    5: 64000,
+    6: 35000,
+    7: 45000,
+    8: 50000,
+    9: 50000,
+    10: 55000,
+    11: 54000,
+    12: 45000,
+    13: 47000,
+    14: 70000,
+    15: 41000,
+    16: 64000,
+    17: 53000,
+    18: 48000,
+    19: 35000,
+    20: 50000,
+    21: 75000,
+}
 GAME_ACTION_SPACE = len(ACTION_MAP.keys())
 
 SCORE_NORMALIZATION = 10000
