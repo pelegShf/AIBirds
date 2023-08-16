@@ -12,7 +12,7 @@ sys.path.append(CODE_DIR)
 
 from consts import *
 from other.clientActionRobot import *
-from vision.game_state_extractor import get_slingshot, crop_img
+from vision.game_state_extractor import crop_img, generate_state
 
 import cv2
 import numpy as np
@@ -45,28 +45,29 @@ class AngryBirdGame(Env):
         # config message, and gets the [Round Info, Time_limit , Number of Levels]
         config = self.ar.configure()  # configures message to the server
         self.state = self.ar.get_state()[0]
+        self.img_dir = './screenshot.png'
         self.solved = [0] * config[2]
         self.current_level = 1
         # basic values for slingshot
         self.slingshotX = 196
         self.slingshotY = 326
+        self.lvl_try_counter = 0
+
 
     def step(self, action):
         # Action key - [dx,dy]
         print(f'using action: {action}')
         # SEND ACTION TO SERVER
-        state = self.ar.get_state()[0]
-        if state == STATE_PLAYING:
-            makeshot = self.ar.c_shoot(self.slingshotX, self.slingshotY, ACTION_MAP[action][0], ACTION_MAP[action][1],
-                                       0, 0)
+        makeshot = self.ar.c_shoot(self.slingshotX, self.slingshotY, ACTION_MAP[action][0], ACTION_MAP[action][1],
+                                   0, 0)
         # Get the next observation
-        new_observation = self.get_observation()
         # Check if game is done
         done, is_win = self.get_done()
 
         if not done:
             img_dir = self.ar.do_screen_shot()
             image = cv2.imread(img_dir)
+
             cropped = image[REWARD_TOP:REWARD_BOTTOM, REWARD_LEFT:REWARD_RIGHT]
 
             grayImage = cv2.cvtColor(cropped, cv2.COLOR_BGR2GRAY)
@@ -85,13 +86,14 @@ class AngryBirdGame(Env):
         else:
             score = self.ar.get_my_score()
             reward = float(score[self.current_level - 1])
+
         reward = reward / THREE_STARS_SCORES[self.current_level]
+
         print(f'Reward: {reward}')
-        # Info dict - not relevant
         info = {'is_win': is_win["is_win"]}
         if info["is_win"]:
             self.current_level = self.current_level + 1
-
+        new_observation = self.get_observation()
         return new_observation, reward, done, False, info
 
     def render(self):
@@ -101,34 +103,43 @@ class AngryBirdGame(Env):
 
     def reset(self, seed=None, options=None):
         super().reset(seed=seed)
-        state = self.ar.get_state()[0]
-        if state == STATE_WON or state == STATE_LEVEL_SELECTION:
+        self.state = self.ar.get_state()[0]
+        if self.state == STATE_WON or self.state == STATE_LEVEL_SELECTION:
             load_lvl = self.ar.load_level(self.current_level)  # TODO: add an if load_lvl failed?
-        elif state == STATE_LOST:
-            self.ar.restart_level()
+        elif self.state == STATE_LOST:
+            restart_lvl = self.ar.restart_level()
+        self.state = self.ar.get_state()[0]
         new_observ = self.get_observation()
         return new_observ, {}
 
     def close(self):
         cv2.destroyAllWindows()
 
-    def get_observation(self, state=STATE_PLAYING):
+    def get_observation(self):
         # get screen caputre of game
         img_dir = self.ar.do_screen_shot()
-        cropped_img, cropped_img_dir = crop_img(img_dir)
-        if state == STATE_PLAYING:
-            x, y = get_slingshot(cropped_img_dir)
+        self.img_dir = img_dir
+        # cropped_img, cropped_img_dir = crop_img(img_dir)
+        self.ar.fully_zoom_in()
+        img_dir_zoomed = self.ar.do_screen_shot(image_fname='zoomed_screenshot')
+        time.sleep(1)
+        self.ar.fully_zoom_out()
+        gameState, x, y = generate_state(img_dir, img_dir_zoomed)
+        if self.state == STATE_PLAYING:
             self.slingshotX = x
             self.slingshotY = y
             print(x, y)
-
-        img = cv2.cvtColor(cropped_img, cv2.COLOR_BGR2RGB)
-        img = cv2.resize(img, (GAME_WIDTH, GAME_HEIGHT), interpolation=cv2.INTER_AREA)
-        # img = img.astype(np.float32) / 255.0
+        # img = cv2.cvtColor(cropped_img, cv2.COLOR_BGR2RGB)
+        # img = cv2.resize(img, (GAME_WIDTH, GAME_HEIGHT), interpolation=cv2.INTER_AREA)
+        img = cv2.resize(gameState, (GAME_WIDTH, GAME_HEIGHT), interpolation=cv2.INTER_AREA)
+        img = img.reshape(73, 128, 1).astype(np.uint8)
         return img
 
-    def get_done(self):
+    def get_done(self, reward=0):
         self.state = self.ar.get_state()[0]
+        # score = self.ar.get_my_score()
+        # reward = score[self.current_level-1]
+        # reward = reward / THREE_STARS_SCORES[self.current_level]
         if self.state == STATE_WON:
             self.solved[self.current_level - 1] = 1
             return True, {'is_win': True}
@@ -172,7 +183,7 @@ class AngryBirdGame(Env):
             return True
         else:
             try:
-                img_dir = f'./{ERROR_DIR}{self.current_level}_{datetime.now()}.jpg'
+                img_dir = f'./{ERROR_DIR}{self.current_level}_{datetime.now()}.png'
                 cv2.imwrite(img_dir, img)
                 print(f'Err with the OCR, saved the image, in {img_dir}. Reward set to 0.')
                 return False
@@ -194,7 +205,7 @@ class TrainAndLoggingCallback(BaseCallback):
 
     def _on_step(self) -> bool:
         if self.n_calls % self.check_freq == 0:
-            model_path = os.path.join(self.save_path, 'PPO_{}'.format(self.n_calls))
+            model_path = os.path.join(self.save_path, 'NEW_STATE_{}'.format(self.n_calls))
             self.model.save(model_path)
 
         return True
@@ -211,18 +222,13 @@ def train(env):
         print('______________________________')
 
 
-def test_model(env, model, lvls):
-    lvl = 1
-    while lvl <= int(lvls):
-        done = False
-        total_reward = 0
-        obs = env.reset()
-        while not done:
-            action, _ = model.predict(obs)
-            obs, reward, done, trunct, info = env.step(int(action))
-            total_reward = total_reward + (reward - total_reward)
-            if info['is_win']:
-                lvl = lvl + 1
+def test_model(env, model):
+    obs, info = env.reset()
+    while True:
+        action, _states = model.predict(obs, deterministic=False)
+        obs, reward, terminated, truncated, info = env.step(int(action))
+        if terminated or truncated:
+            obs, info = env.reset()
 
 
 def main():
@@ -253,35 +259,52 @@ def main():
     # Your code using the mode and pre_trained_dir goes here
     print("Mode:", mode)
     print("Pre-trained directory:", pre_trained_dir)
+
     env = AngryBirdGame()
     env_checker.check_env(env)
-    try:
-        if mode == 'train':
-            if pre_trained_dir is None:
-                print('Training from scratch')
-                # model = DQN('CnnPolicy', env, tensorboard_log=LOG_DIR, verbose=1, buffer_size=60000,
-                #              learning_starts=1000)
-                model = PPO("CnnPolicy", env, verbose=1, learning_rate=0.0003, gae_lambda=0.95, gamma=0.99, batch_size=128)
-            else:
-                print('using pre-trained')
-                model_path = BEST_MODEL_DIR
-                model = DQN.load(model_path)
-                model.set_env(env)
-            callback = TrainAndLoggingCallback(check_freq=500, save_path=CHECKPOINT_DIR)
-            model.learn(total_timesteps=25000, callback=callback)
+    model = DQN('CnnPolicy', env, tensorboard_log=LOG_DIR, verbose=1, buffer_size=50000,
+                learning_starts=1000, target_update_interval=500, exploration_fraction=0.8, exploration_initial_eps=1.0,
+                train_freq=4, max_grad_norm=0.6)
+    # model_path = BEST_MODEL_DIR
+    # model = PPO.load(model_path)
+    # model.set_env(env)
+    callback = TrainAndLoggingCallback(check_freq=500, save_path=CHECKPOINT_DIR)
+    model.learn(total_timesteps=6000, callback=callback)
 
-        elif mode == 'test':
-            print('test')
-            model_path = BEST_MODEL_DIR
-            # model = DQN.load(model_path)
-            model = PPO.load(model_path)
-            model.set_env(env)
-            test_model(env, model, lvls)
-        else:
-            print("Something strange has happened, please try again.")
-    except ValueError as ve:
-        print("Error:", ve)
-        print("Need to enter train or test mode. Can also enter path to a pre-trained model.")
+    # model_path = BEST_MODEL_DIR
+    # model = DQN.load(model_path)
+    # # model = PPO.load(model_path)
+    # model.set_env(env)
+    # test_model(env, model)
+
+    # try:
+    #     if mode == 'train':
+    #         if pre_trained_dir is None:
+    #             print('Training from scratch')
+    #             # model = DQN('CnnPolicy', env, tensorboard_log=LOG_DIR, verbose=1, buffer_size=60000,
+    #             #              learning_starts=1000)
+    #             model = PPO("CnnPolicy", env, verbose=1, learning_rate=0.0003, gae_lambda=0.95, gamma=0.99, batch_size=128)
+    #         else:
+    #             print('using pre-trained')
+    #             model_path = BEST_MODEL_DIR
+    #             # model = DQN.load(model_path)
+    #             model = PPO.load(model_path)
+    #             model.set_env(env)
+    #         callback = TrainAndLoggingCallback(check_freq=500, save_path=CHECKPOINT_DIR)
+    #         model.learn(total_timesteps=25000, callback=callback)
+    #
+    #     elif mode == 'test':
+    #         print('test')
+    #         model_path = BEST_MODEL_DIR
+    #         # model = DQN.load(model_path)
+    #         model = PPO.load(model_path)
+    #         model.set_env(env)
+    #         test_model(env, model, lvls)
+    #     else:
+    #         print("Something strange has happened, please try again.")
+    # except ValueError as ve:
+    #     print("Error:", ve)
+    #     print("Need to enter train or test mode. Can also enter path to a pre-trained model.")
 
 
 if __name__ == '__main__':

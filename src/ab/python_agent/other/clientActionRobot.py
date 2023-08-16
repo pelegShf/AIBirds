@@ -151,7 +151,7 @@ class ClientActionRobot:
             to an image file specified by `image_fname`.
 
         :param image_fname: The filename to save the screenshot as. Defaults to 'screenshot'.
-        :type image_fname: (str, optional)
+        :type image_fname: str
         :return: image dir
         :rtype string
         """
@@ -176,7 +176,7 @@ class ClientActionRobot:
                 received_data += data
                 remaining_bytes -= len(data)
             img = Image.frombytes('RGB', (width, height), received_data)
-            img_dir = f'{image_fname}.jpg'
+            img_dir = f'{image_fname}.png'
             img.save(img_dir)
             return img_dir
         except socket.error as e:
@@ -290,7 +290,7 @@ class ClientActionRobot:
             :rtype int
         """
         try:
-            message = c_shoot(focus_x, focus_y, dx, dy, t1, t2)
+            message = c_shoot(int(focus_x), int(focus_y), dx, dy, t1, t2)
             self.client_socket.sendall(message)
 
             response = self.client_socket.recv(1)

@@ -5,7 +5,7 @@ CHECKPOINT_DIR = './train'
 LOG_DIR = './logs/'
 ERROR_DIR = './errors/'
 MODELS_DIR = './train/'
-BEST_MODEL_DIR = f'{MODELS_DIR}PPO_2000.zip'
+BEST_MODEL_DIR = f'{MODELS_DIR}best_model3_1000.zip'
 PYTESSERACT_DIR = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
 
 # SERVER CONFIG
@@ -30,8 +30,7 @@ SCREEN_HEIGHT = 480
 GAME_WIDTH = 128
 GAME_HEIGHT = 73
 GAME_BATCH = 1
-CHANNELS = 3
-
+CHANNELS = 1
 
 ACTION_MAP = {
     0: [-10, 5],
@@ -97,7 +96,7 @@ THREE_STARS_SCORES = {
     1: 32000,
     2: 60000,
     3: 41000,
-    4:28000,
+    4: 28000,
     5: 64000,
     6: 35000,
     7: 45000,
@@ -129,7 +128,8 @@ REWARD_RIGHT = 790
 CROP_X = 70
 CROP_Y = 110
 
+OFFSETX = 0.5
+OFFSETY = 0.65
+
 SLINGSHOT_BOUNDRIES = [70, 100, 400, 380]  # X MIN, Y MIN, X MAX, Y MAX
-DEFAULT_SLINGSHOT = [192, 326]
-
-
+DEFAULT_SLINGSHOT = [192, 326,18,66]
