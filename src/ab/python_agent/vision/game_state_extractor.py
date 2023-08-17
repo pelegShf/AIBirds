@@ -61,7 +61,7 @@ def find_sling_yolo(img_dir, model='./vision/best.pt'):
             x_min = DEFAULT_SLINGSHOT[0] - CROP_X
             y_min = DEFAULT_SLINGSHOT[1] - CROP_Y
 
-    return int(x_min) + CROP_X, int(y_min - 24) + CROP_Y
+    return int(x_min) + CROP_X, int(y_min - 16) + CROP_Y
 
 
 def crop_img(img_dir):
