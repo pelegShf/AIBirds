@@ -53,13 +53,12 @@ class AngryBirdGame(Env):
         self.slingshotY = 326
         self.lvl_try_counter = 0
 
-
     def step(self, action):
         # Action key - [dx,dy]
         print(f'using action: {action}')
         # SEND ACTION TO SERVER
         makeshot = self.ar.c_shoot(self.slingshotX, self.slingshotY, ACTION_MAP[action][0], ACTION_MAP[action][1],
-                                   0, 0)
+                                   0, ACTION_MAP[action][2])
         # Get the next observation
         # Check if game is done
         done, is_win = self.get_done()
@@ -231,6 +230,9 @@ def test_model(env, model):
             obs, info = env.reset()
 
 
+
+
+
 def main():
     print('started to run')
     parser = argparse.ArgumentParser(description="Process mode and pre-trained directory")
@@ -262,20 +264,20 @@ def main():
 
     env = AngryBirdGame()
     env_checker.check_env(env)
-    model = DQN('CnnPolicy', env, tensorboard_log=LOG_DIR, verbose=1, buffer_size=50000,
-                learning_starts=1000, target_update_interval=500, exploration_fraction=0.8, exploration_initial_eps=1.0,
-                train_freq=4, max_grad_norm=0.6)
+    # model = DQN('CnnPolicy', env, tensorboard_log=LOG_DIR, verbose=1, buffer_size=50000,
+    #             learning_starts=1000, target_update_interval=500, exploration_fraction=0.8, exploration_initial_eps=1.0,
+    #             train_freq=4, max_grad_norm=0.6)
     # model_path = BEST_MODEL_DIR
     # model = PPO.load(model_path)
     # model.set_env(env)
-    callback = TrainAndLoggingCallback(check_freq=500, save_path=CHECKPOINT_DIR)
-    model.learn(total_timesteps=6000, callback=callback)
+    # callback = TrainAndLoggingCallback(check_freq=500, save_path=CHECKPOINT_DIR)
+    # model.learn(total_timesteps=6000, callback=callback)
 
-    # model_path = BEST_MODEL_DIR
-    # model = DQN.load(model_path)
-    # # model = PPO.load(model_path)
-    # model.set_env(env)
-    # test_model(env, model)
+    model_path = BEST_MODEL_DIR
+    model = DQN.load(model_path)
+    # model = PPO.load(model_path)
+    model.set_env(env)
+    test_model(env, model)
 
     # try:
     #     if mode == 'train':
