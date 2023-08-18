@@ -27,8 +27,8 @@ STATE_LOST = 7
 SCREEN_WIDTH = 840
 SCREEN_HEIGHT = 480
 
-GAME_WIDTH = 128
-GAME_HEIGHT = 73
+GAME_WIDTH = SCREEN_WIDTH
+GAME_HEIGHT = SCREEN_HEIGHT
 GAME_BATCH = 1
 CHANNELS = 1
 
@@ -98,7 +98,7 @@ def create_state_dict():
 
     dx_range = range(-10, -50, -5)
     dy_range = range(5, 45, 5)
-    t_range = range(0, 4250, 250)
+    t_range = range(500, 4000, 250)
 
     key_counter = 0
     for dx in dx_range:
@@ -134,6 +134,39 @@ THREE_STARS_SCORES = {
     19: 35000,
     20: 50000,
     21: 75000,
+}
+
+# Create a dictionary to map class labels to unique values
+CLASS_TO_VALUE = {
+    "unknown": 0,
+    "hill": 1,
+    "Wood": 2,
+    "Ice": 3,
+    "Stone": 4,
+    "slingshot": 5,
+    "pig": 6,
+    "RedBird": 7,
+    "YellowBird": 8,
+    "WhiteBird": 9,
+    "BlackBird": 10,
+    "BlueBird": 11,
+    "tnt": 12,
+}
+CLASS_COLOR = {
+    "unknown": "#454545",
+    "Wood": "#9C5E20",
+    "Ice": "#EBE2D8",
+    "Stone": "#18189E",
+    "slingshot": "#9E9818",
+    "pig": "#30C618",
+    "hill": "#76801E",
+    "tnt": "#9E1887",
+    "RedBird": "#F62817",
+    "YellowBird": "#E9AB17",
+    "WhiteBird": "#F8F8FF",
+    "BlackBird": "#0C090A",
+    "BlueBird": "#728FCE"
+    # Add more class labels and values as needed
 }
 GAME_ACTION_SPACE = len(ACTION_MAP.keys())
 

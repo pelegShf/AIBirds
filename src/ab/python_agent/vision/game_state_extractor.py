@@ -10,7 +10,8 @@ from PIL import Image
 from mpmath import inf
 from ultralytics import YOLO
 
-from consts import SLINGSHOT_BOUNDRIES, CROP_X, CROP_Y, DEFAULT_SLINGSHOT, SCREEN_WIDTH, SCREEN_HEIGHT, OFFSETX, OFFSETY
+from consts import SLINGSHOT_BOUNDRIES, CROP_X, CROP_Y, DEFAULT_SLINGSHOT, SCREEN_WIDTH, SCREEN_HEIGHT, OFFSETX, \
+    OFFSETY, CLASS_TO_VALUE, CLASS_COLOR
 
 
 def generate_state(img_dir, img_dir_zoomed, model='./vision/best.pt'):
@@ -106,29 +107,7 @@ def create_state(file_path):
         }
         yolov8_bbox_data.append(bbox)
 
-    # Create a dictionary to map class labels to unique values
-    class_to_value = {
-        "unknown": 0,
-        "hill": 1,
-        "Wood": 2,
-        "Ice": 3,
-        "Stone": 4,
-        "slingshot": 5,
-        "pig": 6,
-        "tnt": 7,
-        # Add more class labels and values as needed
-    }
-    class_colors = {
-        "unknown": "#7A7A7A",
-        "Wood": "#9C5E20",
-        "Ice": "#EBE2D8",
-        "Stone": "#18189E",
-        "slingshot": "#9E9818",
-        "pig": "#30C618",
-        "hill": "#76801E",
-        "tnt": "#9E1887",
-        # Add more class labels and values as needed
-    }
+
     # Set the image dimensions (replace with your actual image dimensions)
     image_width = SCREEN_WIDTH
     image_height = SCREEN_HEIGHT
@@ -146,7 +125,7 @@ def create_state(file_path):
         cell_y = int(y_center * num_cells_y / image_height)
 
         class_label = bbox["class"]
-        class_value = class_to_value.get(class_label, 0)  # 0 for unknown class
+        class_value = CLASS_TO_VALUE.get(class_label, 0)  # 0 for unknown class
 
         x_range = int(bbox["width"] * num_cells_x / image_width)
         y_range = int(bbox["height"] * num_cells_y / image_height)
@@ -157,16 +136,16 @@ def create_state(file_path):
                 x_idx = min(max(cell_x + x_offset, 0), num_cells_x - 1)
                 numerical_array[y_idx][x_idx] = class_value
     #     VISUAL STUFF - uncomment for human
-    # num_unique_classes = len(set(class_to_value.values()))
-    # colors = [class_colors.get(label, 'black') for label in class_to_value.keys()]
+    # num_unique_classes = len(set(CLASS_TO_VALUE.values()))
+    # colors = [CLASS_COLOR.get(label, 'black') for label in CLASS_TO_VALUE.keys()]
     # cmap = mcolors.ListedColormap(colors)
     #
     # # Create a color-coded heatmap visualization
     # plt.imshow(numerical_array, cmap=cmap, interpolation='nearest', vmin=0, vmax=num_unique_classes)
     # cbar = plt.colorbar(ticks=np.arange(num_unique_classes + 1))
     # cbar.set_label('Class Value')
-    # cbar.ax.set_yticklabels(['Unknown'] + [label for label in class_to_value.keys()])
-
+    # cbar.ax.set_yticklabels(['Unknown'] + [label for label in CLASS_TO_VALUE.keys()])
+    #
     # plt.title('State Array Visualization')
     # plt.xlabel('X Cells')
     # plt.ylabel('Y Cells')

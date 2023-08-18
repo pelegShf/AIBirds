@@ -131,7 +131,7 @@ class AngryBirdGame(Env):
         # img = cv2.cvtColor(cropped_img, cv2.COLOR_BGR2RGB)
         # img = cv2.resize(img, (GAME_WIDTH, GAME_HEIGHT), interpolation=cv2.INTER_AREA)
         img = cv2.resize(gameState, (GAME_WIDTH, GAME_HEIGHT), interpolation=cv2.INTER_AREA)
-        img = img.reshape(73, 128, 1).astype(np.uint8)
+        img = img.reshape(GAME_WIDTH, GAME_HEIGHT, 1).astype(np.uint8)
         return img
 
     def get_done(self, reward=0):
@@ -264,20 +264,20 @@ def main():
 
     env = AngryBirdGame()
     env_checker.check_env(env)
-    # model = DQN('CnnPolicy', env, tensorboard_log=LOG_DIR, verbose=1, buffer_size=50000,
-    #             learning_starts=1000, target_update_interval=500, exploration_fraction=0.8, exploration_initial_eps=1.0,
-    #             train_freq=4, max_grad_norm=0.6)
+    model = DQN('CnnPolicy', env, tensorboard_log=LOG_DIR, verbose=1, buffer_size=12000,
+                learning_starts=1000, target_update_interval=500, exploration_fraction=0.8, exploration_initial_eps=1.0,
+                train_freq=4, max_grad_norm=0.6)
     # model_path = BEST_MODEL_DIR
     # model = PPO.load(model_path)
     # model.set_env(env)
-    # callback = TrainAndLoggingCallback(check_freq=500, save_path=CHECKPOINT_DIR)
-    # model.learn(total_timesteps=6000, callback=callback)
+    callback = TrainAndLoggingCallback(check_freq=500, save_path=CHECKPOINT_DIR)
+    model.learn(total_timesteps=6000, callback=callback)
 
-    model_path = BEST_MODEL_DIR
-    model = DQN.load(model_path)
-    # model = PPO.load(model_path)
-    model.set_env(env)
-    test_model(env, model)
+    # model_path = BEST_MODEL_DIR
+    # model = DQN.load(model_path)
+    # # model = PPO.load(model_path)
+    # model.set_env(env)
+    # test_model(env, model)
 
     # try:
     #     if mode == 'train':

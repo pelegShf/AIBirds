@@ -19,6 +19,8 @@ import java.io.FileWriter;
 import java.io.IOException;  // Import the IOException class to handle errors
 import java.util.List;
 
+import static ab.vision.ABType.*;
+
 
 public class davidAgent {
     /***************************
@@ -121,6 +123,36 @@ public class davidAgent {
             for (int i = 0; i < pigs.size(); i++) {
                 Rectangle pig = pigs.get(i);
                 text = String.format("pig %d %d %d %d\n", pig.x , pig.y, pig.width, pig.height);
+                myWriter.write(text);
+            }
+
+            // get all the birds
+            List<ABObject> birds = vision.findBirdsMBR();
+
+            for (int i = 0; i < birds.size(); i++) {
+                Rectangle bird = birds.get(i);
+                switch (((ABObject) bird).getType()) {
+                    case RedBird:
+                        obj_type = "RedBird";
+                        break;
+                    case YellowBird:
+                        obj_type = "YellowBird";
+                        break;
+                    case WhiteBird:
+                        obj_type = "WhiteBird";
+                        break;
+                    case BlackBird:
+                        obj_type = "BlackBird";
+                        break;
+                    case BlueBird:
+                        obj_type = "BlueBird";
+                        break;
+                    default:
+                        obj_type = "default";
+                }
+
+
+                text = String.format("%s %d %d %d %d\n",obj_type, bird.x , bird.y, bird.width, bird.height);
                 myWriter.write(text);
             }
 
