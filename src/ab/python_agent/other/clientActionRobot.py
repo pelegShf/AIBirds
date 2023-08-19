@@ -1,6 +1,7 @@
 import socket
 import struct
 import sys
+import time
 
 from PIL import Image
 
@@ -99,7 +100,9 @@ class ClientActionRobot:
 
             response = self.client_socket.recv(1)
             response = decode_byte_to_int(response)  # [1/0]
-
+            while not self.get_state()[0] == 5:
+                print("waiting in load_level")
+                time.sleep(1)
             return response
         except socket.error as e:
             print("Connection error: %s" % e)
@@ -138,7 +141,9 @@ class ClientActionRobot:
 
             response = self.client_socket.recv(1)
             response = decode_byte_to_int(response)  # [1/0]
-
+            while not self.get_state()[0] == 5:
+                print("waiting in load_level")
+                time.sleep(1)
             return response
         except socket.error as e:
             print("Connection error: %s" % e)
@@ -176,7 +181,7 @@ class ClientActionRobot:
                 received_data += data
                 remaining_bytes -= len(data)
             img = Image.frombytes('RGB', (width, height), received_data)
-            img_dir = f'{image_fname}.jpg'
+            img_dir = f'{image_fname}.png'
             img.save(img_dir)
             return img_dir
         except socket.error as e:
