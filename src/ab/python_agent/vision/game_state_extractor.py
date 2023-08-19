@@ -65,10 +65,11 @@ def find_sling_yolo(img_dir, model='./vision/best.pt'):
     return int(x_min) + CROP_X, int(y_min - 16) + CROP_Y
 
 
-def crop_img(img_dir):
-    image = Image.open(img_dir)
-    img = np.asarray(image)
-    plt.imshow(img)
+def crop_img(img, is_array=False):
+    if not is_array:
+        image = Image.open(img)
+        img = np.asarray(image)
+    # plt.imshow(img)
     crop = img[110:400, 70:800]
     cropped_image_rgb = cv2.cvtColor(crop, cv2.COLOR_BGR2RGB)
 
@@ -135,19 +136,24 @@ def create_state(file_path):
                 y_idx = min(max(cell_y + y_offset, 0), num_cells_y - 1)
                 x_idx = min(max(cell_x + x_offset, 0), num_cells_x - 1)
                 numerical_array[y_idx][x_idx] = class_value
-    #     VISUAL STUFF - uncomment for human
-    # num_unique_classes = len(set(CLASS_TO_VALUE.values()))
-    # colors = [CLASS_COLOR.get(label, 'black') for label in CLASS_TO_VALUE.keys()]
-    # cmap = mcolors.ListedColormap(colors)
-    #
-    # # Create a color-coded heatmap visualization
-    # plt.imshow(numerical_array, cmap=cmap, interpolation='nearest', vmin=0, vmax=num_unique_classes)
-    # cbar = plt.colorbar(ticks=np.arange(num_unique_classes + 1))
-    # cbar.set_label('Class Value')
-    # cbar.ax.set_yticklabels(['Unknown'] + [label for label in CLASS_TO_VALUE.keys()])
-    #
-    # plt.title('State Array Visualization')
-    # plt.xlabel('X Cells')
-    # plt.ylabel('Y Cells')
-    # plt.show()
-    return slingshot_found, sling, numerical_array
+    cropped = numerical_array[110:400, 70:800]
+    # VISUAL STUFF - uncomment for human
+    # visualize_state()
+    return slingshot_found, sling, cropped
+
+
+def visualize_state(state):
+    num_unique_classes = len(set(CLASS_TO_VALUE.values()))
+    colors = [CLASS_COLOR.get(label, 'black') for label in CLASS_TO_VALUE.keys()]
+    cmap = mcolors.ListedColormap(colors)
+
+    # Create a color-coded heatmap visualization
+    plt.imshow(state, cmap=cmap, interpolation='nearest', vmin=0, vmax=num_unique_classes)
+    cbar = plt.colorbar(ticks=np.arange(num_unique_classes + 1))
+    cbar.set_label('Class Value')
+    cbar.ax.set_yticklabels(['Unknown'] + [label for label in CLASS_TO_VALUE.keys()])
+
+    plt.title('State Array Visualization')
+    plt.xlabel('X Cells')
+    plt.ylabel('Y Cells')
+    plt.show()
